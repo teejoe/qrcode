@@ -24,29 +24,32 @@
               android:gravity="center"
               tools:ignore="Overdraw">
 
-  <ImageView android:id="@+id/image_view"
-             android:layout_width="wrap_content"
-             android:layout_height="fill_parent"
-             android:layout_gravity="center_vertical"
-             android:scaleType="center"
-             tools:ignore="ContentDescription"/>
+    <ImageView
+        android:id="@+id/image_view"
+        android:layout_width="wrap_content"
+        android:layout_height="fill_parent"
+        android:layout_gravity="center_vertical"
+        android:scaleType="center"
+        tools:ignore="ContentDescription"/>
 
-  <ScrollView android:layout_width="wrap_content"
-            android:layout_height="fill_parent"
+    <ScrollView
+        android:layout_width="wrap_content"
+        android:layout_height="fill_parent"
+        android:layout_gravity="center_vertical"
+        android:gravity="center">
+
+        <TextView
+            android:id="@+id/contents_text_view"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
-            android:gravity="center">
+            android:gravity="center"
+            android:textColor="@color/contents_text"
+            android:paddingRight="8dip"
+            android:paddingTop="8dip"
+            android:paddingBottom="8dip"
+            android:textIsSelectable="true"/>
 
-    <TextView android:id="@+id/contents_text_view"
-              android:layout_width="wrap_content"
-              android:layout_height="wrap_content"
-              android:layout_gravity="center_vertical"
-              android:gravity="center"
-              android:textColor="@color/contents_text"
-              android:paddingRight="8dip"
-              android:paddingTop="8dip"
-              android:paddingBottom="8dip"
-              android:textIsSelectable="true"/>
-
-  </ScrollView>
+    </ScrollView>
 
 </LinearLayout>

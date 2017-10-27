@@ -25,29 +25,32 @@
               android:gravity="center"
               tools:ignore="Overdraw">
 
-  <ImageView android:id="@+id/image_view"
-             android:layout_width="fill_parent"
-             android:layout_height="wrap_content"
-             android:layout_gravity="center_horizontal"
-             android:scaleType="center"
-             tools:ignore="ContentDescription"/>
+    <ImageView
+        android:id="@+id/image_view"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:scaleType="center"
+        tools:ignore="ContentDescription"/>
 
-  <ScrollView android:layout_width="fill_parent"
-              android:layout_height="wrap_content"
-              android:layout_gravity="center_horizontal"
-              android:gravity="center">
+    <ScrollView
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:gravity="center">
 
-    <TextView android:id="@+id/contents_text_view"
-              android:layout_width="fill_parent"
-              android:layout_height="wrap_content"
-              android:layout_gravity="center_horizontal"
-              android:gravity="center"
-              android:textColor="@color/contents_text"
-              android:paddingBottom="@dimen/standard_padding"
-              android:paddingLeft="@dimen/standard_padding"
-              android:paddingRight="@dimen/standard_padding"
-              android:textIsSelectable="true"/>
+        <TextView
+            android:id="@+id/contents_text_view"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:gravity="center"
+            android:textColor="@color/contents_text"
+            android:paddingBottom="@dimen/standard_padding"
+            android:paddingLeft="@dimen/standard_padding"
+            android:paddingRight="@dimen/standard_padding"
+            android:textIsSelectable="true"/>
 
-  </ScrollView>
+    </ScrollView>
 
 </LinearLayout>

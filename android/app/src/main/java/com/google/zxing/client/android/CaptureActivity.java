@@ -446,7 +446,7 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
             @Override
             protected String doInBackground(Void... voids) {
                 LuminanceSource source = buildLuminanceImageFromBitmap(bmp);
-                if(source == null) {
+                if (source == null) {
                     return null;
                 }
 
@@ -455,7 +455,7 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
                 try {
                     QRCodeReader re = new QRCodeReader();
                     Result rawResult = re.decode(bitmap);
-                    if(rawResult != null) {
+                    if (rawResult != null) {
                         return rawResult.getText();
                     }
                 } catch (ReaderException e) {
