@@ -24,6 +24,7 @@ package com.google.zxing;
  * @author Sean Owen
  */
 public abstract class ReaderException extends Exception {
+    protected static final boolean DEBUG = true;
 
     // disable stack traces when not running inside test units
     protected static final boolean isStackTrace =
@@ -32,6 +33,9 @@ public abstract class ReaderException extends Exception {
 
     ReaderException() {
         // do nothing
+        if (DEBUG) {
+            fillInStackTrace();
+        }
     }
 
     ReaderException(Throwable cause) {
@@ -41,6 +45,9 @@ public abstract class ReaderException extends Exception {
     // Prevent stack traces from being taken
     @Override
     public final synchronized Throwable fillInStackTrace() {
+        if (DEBUG) {
+            return super.fillInStackTrace();
+        }
         return null;
     }
 
