@@ -32,6 +32,7 @@ public final class ChecksumException extends ReaderException {
 
     private ChecksumException() {
         // do nothing
+        super();
     }
 
     private ChecksumException(Throwable cause) {
@@ -39,10 +40,16 @@ public final class ChecksumException extends ReaderException {
     }
 
     public static ChecksumException getChecksumInstance() {
+        if (DEBUG) {
+            return new ChecksumException();
+        }
         return isStackTrace ? new ChecksumException() : INSTANCE;
     }
 
     public static ChecksumException getChecksumInstance(Throwable cause) {
+        if (DEBUG) {
+            return new ChecksumException(cause);
+        }
         return isStackTrace ? new ChecksumException(cause) : INSTANCE;
     }
 }

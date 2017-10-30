@@ -32,6 +32,7 @@ public final class FormatException extends ReaderException {
     }
 
     private FormatException() {
+        super();
     }
 
     private FormatException(Throwable cause) {
@@ -39,10 +40,16 @@ public final class FormatException extends ReaderException {
     }
 
     public static FormatException getFormatInstance() {
+        if (DEBUG) {
+            return new FormatException();
+        }
         return isStackTrace ? new FormatException() : INSTANCE;
     }
 
     public static FormatException getFormatInstance(Throwable cause) {
+        if (DEBUG) {
+            return new FormatException(cause);
+        }
         return isStackTrace ? new FormatException(cause) : INSTANCE;
     }
 }

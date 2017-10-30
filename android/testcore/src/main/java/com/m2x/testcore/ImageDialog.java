@@ -8,12 +8,15 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.view.Window;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import com.google.zxing.BinaryBitmap;
 import com.google.zxing.LuminanceSource;
 import com.google.zxing.NotFoundException;
 import com.google.zxing.common.GlobalHistogramBinarizer;
 import com.google.zxing.common.HybridBinarizer;
+import com.m2x.testcore.TestWrapper.Binarizer;
+import com.m2x.testcore.TestWrapper.DecodeResult;
 import com.squareup.picasso.Picasso;
 
 import java.io.File;
@@ -30,6 +33,7 @@ public class ImageDialog extends Dialog {
 
     private String mImageFilePath;
 
+    private Binarizer mBinarizer = Binarizer.GLOBAL_HISTOGRAM;
 
     @BindView(R.id.image)
     ImageView mImageView;
@@ -61,6 +65,7 @@ public class ImageDialog extends Dialog {
 
     @OnClick(R.id.hybrid)
     void onHybridClicked() {
+        mBinarizer = Binarizer.HYBRID;
         Bitmap origin = BitmapFactory.decodeFile(mImageFilePath);
         LuminanceSource source = TestWrapper.buildLuminanceImageFromBitmap(origin);
         if (source == null) {
@@ -78,6 +83,7 @@ public class ImageDialog extends Dialog {
 
     @OnClick(R.id.global)
     void onGlobalClicked() {
+        mBinarizer = Binarizer.GLOBAL_HISTOGRAM;
         Bitmap origin = BitmapFactory.decodeFile(mImageFilePath);
         LuminanceSource source = TestWrapper.buildLuminanceImageFromBitmap(origin);
         if (source == null) {
@@ -91,5 +97,13 @@ public class ImageDialog extends Dialog {
         } catch (NotFoundException e) {
             e.printStackTrace();
         }
+    }
+
+    @OnClick(R.id.decode)
+    void onDecodeClicked() {
+        Bitmap bitmap = BitmapFactory.decodeFile(mImageFilePath);
+        DecodeResult result = TestWrapper.decodeBitmap(bitmap, mBinarizer);
+        Toast.makeText(getContext(), "success:" + result.success + "\nmsg:" + result.msg,
+                Toast.LENGTH_LONG).show();
     }
 }
