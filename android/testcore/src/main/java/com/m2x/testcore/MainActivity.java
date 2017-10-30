@@ -1,5 +1,6 @@
 package com.m2x.testcore;
 
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
@@ -34,6 +35,11 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
+    }
+
+    @OnClick(R.id.test)
+    void onTestClicked() {
+        startActivity(new Intent(this, TestActivity.class));
     }
 
     @OnClick(R.id.start)
