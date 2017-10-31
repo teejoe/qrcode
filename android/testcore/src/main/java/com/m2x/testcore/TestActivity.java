@@ -91,7 +91,7 @@ public class TestActivity extends AppCompatActivity {
                     Bitmap bitmap = BitmapFactory.decodeFile(model.imagePath);
                     if (bitmap != null) {
                         long start = System.currentTimeMillis();
-                        DecodeResult result = TestWrapper.decodeBitmap(bitmap, mBinarizer);
+                        DecodeResult result = TestWrapper.decodeBitmap(bitmap, mBinarizer, null);
                         model.cost = System.currentTimeMillis() - start;
                         model.finished = true;
                         model.success = result.success;

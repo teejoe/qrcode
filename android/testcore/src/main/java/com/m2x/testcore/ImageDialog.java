@@ -7,19 +7,24 @@ import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.view.Window;
-import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.google.zxing.BinaryBitmap;
+import com.google.zxing.DecodeHintType;
 import com.google.zxing.LuminanceSource;
 import com.google.zxing.NotFoundException;
+import com.google.zxing.ResultPoint;
+import com.google.zxing.ResultPointCallback;
 import com.google.zxing.common.GlobalHistogramBinarizer;
 import com.google.zxing.common.HybridBinarizer;
 import com.m2x.testcore.TestWrapper.Binarizer;
 import com.m2x.testcore.TestWrapper.DecodeResult;
+import com.m2x.testcore.widget.DecodeImageView;
 import com.squareup.picasso.Picasso;
 
 import java.io.File;
+import java.util.EnumMap;
+import java.util.Map;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -35,12 +40,25 @@ public class ImageDialog extends Dialog {
 
     private Binarizer mBinarizer = Binarizer.GLOBAL_HISTOGRAM;
 
+    private Map<DecodeHintType, Object> mDecodeHint;
+    private ResultPointCallback mResultPointCallback;
+
     @BindView(R.id.image)
-    ImageView mImageView;
+    DecodeImageView mImageView;
 
     public ImageDialog(@NonNull Context context, String filePath) {
         super(context);
         mImageFilePath = filePath;
+
+        mResultPointCallback = new ResultPointCallback() {
+            @Override
+            public void foundPossibleResultPoint(ResultPoint point) {
+                mImageView.addResultPoint(point);
+            }
+        };
+
+        mDecodeHint = new EnumMap<>(DecodeHintType.class);
+        mDecodeHint.put(DecodeHintType.NEED_RESULT_POINT_CALLBACK, mResultPointCallback);
     }
 
     @Override
@@ -58,6 +76,7 @@ public class ImageDialog extends Dialog {
 
     @OnClick(R.id.image)
     void onImageClicked() {
+        mImageView.clearResultPoint();
         Picasso.with(getContext())
                 .load(new File(mImageFilePath))
                 .into(mImageView);
@@ -101,8 +120,10 @@ public class ImageDialog extends Dialog {
 
     @OnClick(R.id.decode)
     void onDecodeClicked() {
+        mImageView.clearResultPoint();
+
         Bitmap bitmap = BitmapFactory.decodeFile(mImageFilePath);
-        DecodeResult result = TestWrapper.decodeBitmap(bitmap, mBinarizer);
+        DecodeResult result = TestWrapper.decodeBitmap(bitmap, mBinarizer, mDecodeHint);
         Toast.makeText(getContext(), "success:" + result.success + "\nmsg:" + result.msg,
                 Toast.LENGTH_LONG).show();
     }
