@@ -17,6 +17,8 @@ import com.google.zxing.ResultPoint;
 import com.google.zxing.ResultPointCallback;
 import com.google.zxing.common.GlobalHistogramBinarizer;
 import com.google.zxing.common.HybridBinarizer;
+import com.google.zxing.qrcode.detector.AlignmentPattern;
+import com.google.zxing.qrcode.detector.FinderPattern;
 import com.m2x.testcore.TestWrapper.Binarizer;
 import com.m2x.testcore.TestWrapper.DecodeResult;
 import com.m2x.testcore.widget.DecodeImageView;
@@ -53,7 +55,11 @@ public class ImageDialog extends Dialog {
         mResultPointCallback = new ResultPointCallback() {
             @Override
             public void foundPossibleResultPoint(ResultPoint point) {
-                mImageView.addResultPoint(point);
+                if (point instanceof FinderPattern) {
+                    mImageView.addFinderPattern((FinderPattern)point);
+                } else if (point instanceof AlignmentPattern) {
+                    mImageView.addAlignmentPattern((AlignmentPattern)point);
+                }
             }
         };
 

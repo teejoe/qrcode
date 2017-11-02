@@ -9,6 +9,8 @@ import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 
 import com.google.zxing.ResultPoint;
+import com.google.zxing.qrcode.detector.AlignmentPattern;
+import com.google.zxing.qrcode.detector.FinderPattern;
 
 import java.util.ArrayList;
 
@@ -17,8 +19,11 @@ import java.util.ArrayList;
  */
 
 public class DecodeImageView extends android.support.v7.widget.AppCompatImageView {
-    private ArrayList<ResultPoint> mResultPoints = new ArrayList<>();
-    private Paint mResultPointPaint;
+    private ArrayList<ResultPoint> mFinderPatterns = new ArrayList<>();
+    private ArrayList<ResultPoint> mAlignmentPatterns = new ArrayList<>();
+
+    private Paint mFinderPatternPaint;
+    private Paint mAlignmentPatternPaint;
 
     public DecodeImageView(Context context) {
         super(context);
@@ -36,19 +41,26 @@ public class DecodeImageView extends android.support.v7.widget.AppCompatImageVie
     }
 
     private void init() {
-        mResultPointPaint = new Paint();
-        mResultPointPaint.setColor(Color.GREEN);
-        mResultPointPaint.setStrokeWidth(5.0f);
+        mFinderPatternPaint = new Paint();
+        mFinderPatternPaint.setColor(Color.GREEN);
+        mFinderPatternPaint.setStrokeWidth(5.0f);
+
+        mAlignmentPatternPaint = new Paint();
+        mAlignmentPatternPaint.setColor(Color.RED);
+        mAlignmentPatternPaint.setStrokeWidth(3.0f);
     }
 
     @Override
     public void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
-        if (mResultPoints.size() > 0) {
+        if (mFinderPatterns.size() > 0 || mAlignmentPatterns.size() > 0) {
             if (((getDrawingTime() / 500) & 0x1) == 0) {   // mod 2
-                for (ResultPoint point : mResultPoints) {
-                    canvas.drawCircle(point.getX(), point.getY(), 5.0f, mResultPointPaint);
+                for (ResultPoint point : mFinderPatterns) {
+                    canvas.drawCircle(point.getX(), point.getY(), 5.0f, mFinderPatternPaint);
+                }
+                for (ResultPoint point: mAlignmentPatterns) {
+                    canvas.drawCircle(point.getX(), point.getY(), 4.0f, mAlignmentPatternPaint);
                 }
             }
             invalidate();
@@ -65,13 +77,19 @@ public class DecodeImageView extends android.support.v7.widget.AppCompatImageVie
         return new ResultPoint(dst[0], dst[1]);
     }
 
-    public void addResultPoint(ResultPoint point) {
-        mResultPoints.add(translatePoint(point));
+    public void addFinderPattern(FinderPattern pattern) {
+        mFinderPatterns.add(translatePoint(pattern));
+        invalidate();
+    }
+
+    public void addAlignmentPattern(AlignmentPattern pattern) {
+        mAlignmentPatterns.add(translatePoint(pattern));
         invalidate();
     }
 
     public void clearResultPoint() {
-        mResultPoints.clear();
+        mFinderPatterns.clear();
+        mAlignmentPatterns.clear();
         invalidate();
     }
 }
