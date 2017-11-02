@@ -1,5 +1,6 @@
 package com.m2x.testcore;
 
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
 import android.graphics.Color;
@@ -13,6 +14,7 @@ import com.google.zxing.NotFoundException;
 import com.google.zxing.RGBLuminanceSource;
 import com.google.zxing.ReaderException;
 import com.google.zxing.Result;
+import com.google.zxing.common.AdjustedHybridBinarizer;
 import com.google.zxing.common.GlobalHistogramBinarizer;
 import com.google.zxing.common.HybridBinarizer;
 import com.google.zxing.qrcode.QRCodeReader;
@@ -24,7 +26,7 @@ import java.util.Map;
  */
 
 public class TestWrapper {
-    public enum Binarizer {HYBRID, GLOBAL_HISTOGRAM};
+    public enum Binarizer {HYBRID, GLOBAL_HISTOGRAM, ADJUSTED_HYBRID};
 
     public static class DecodeResult {
         public DecodeResult(boolean success, String msg) {
@@ -56,15 +58,29 @@ public class TestWrapper {
                 return new DecodeResult(false, "build luminance failed");
             }
 
+            QRCodeReader re = new QRCodeReader();
+            Result rawResult = null;
+
             BinaryBitmap binaryBitmap = null;
             if (binarizer == Binarizer.HYBRID) {
                 binaryBitmap = new BinaryBitmap(new HybridBinarizer(source));
             } else if (binarizer == Binarizer.GLOBAL_HISTOGRAM) {
                 binaryBitmap = new BinaryBitmap(new GlobalHistogramBinarizer(source));
+            } else if (binarizer == Binarizer.ADJUSTED_HYBRID) {
+                for (float i = 1.0f; i < 1.5f; i += 0.01f) {
+                    binaryBitmap = new BinaryBitmap(new AdjustedHybridBinarizer(source, i));
+                    try {
+                        rawResult = re.decode(binaryBitmap, hints);
+                        if (rawResult != null) {
+                            return new DecodeResult(true, rawResult.getText());
+                        }
+                    } catch (ReaderException e) {
+                    }
+                }
+                throw NotFoundException.getNotFoundInstance();
             }
 
-            QRCodeReader re = new QRCodeReader();
-            Result rawResult = re.decode(binaryBitmap, hints);
+            rawResult = re.decode(binaryBitmap, hints);
             if (rawResult != null) {
                 Logging.d("result:" + rawResult.getText());
                 return new DecodeResult(true, rawResult.getText());

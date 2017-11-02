@@ -92,6 +92,9 @@ public class TestActivity extends AppCompatActivity {
                     if (bitmap != null) {
                         long start = System.currentTimeMillis();
                         DecodeResult result = TestWrapper.decodeBitmap(bitmap, mBinarizer, null);
+                        if (!result.success) {
+                            result = TestWrapper.decodeBitmap(bitmap, Binarizer.ADJUSTED_HYBRID, null);
+                        }
                         model.cost = System.currentTimeMillis() - start;
                         model.finished = true;
                         model.success = result.success;
