@@ -67,7 +67,8 @@ public class TestWrapper {
             } else if (binarizer == Binarizer.GLOBAL_HISTOGRAM) {
                 binaryBitmap = new BinaryBitmap(new GlobalHistogramBinarizer(source));
             } else if (binarizer == Binarizer.ADJUSTED_HYBRID) {
-                for (float i = 1.0f; i < 1.5f; i += 0.01f) {
+                ReaderException lastError = null;
+                for (float i = 1.0f; i < 1.2f; i += 0.01f) {
                     binaryBitmap = new BinaryBitmap(new AdjustedHybridBinarizer(source, i));
                     try {
                         rawResult = re.decode(binaryBitmap, hints);
@@ -75,9 +76,14 @@ public class TestWrapper {
                             return new DecodeResult(true, rawResult.getText());
                         }
                     } catch (ReaderException e) {
+                        lastError = e;
                     }
                 }
-                throw NotFoundException.getNotFoundInstance();
+                if (lastError.getStackTrace().length > 0) {
+                    return new DecodeResult(false, lastError.getStackTrace()[0].toString());
+                } else {
+                    return new DecodeResult(false, lastError.getClass().getName());
+                }
             }
 
             rawResult = re.decode(binaryBitmap, hints);
