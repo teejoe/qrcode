@@ -18,7 +18,6 @@ package com.google.zxing.qrcode.detector;
 
 import com.google.zxing.DecodeHintType;
 import com.google.zxing.FormatException;
-import com.google.zxing.Logging;
 import com.google.zxing.NotFoundException;
 import com.google.zxing.ResultPoint;
 import com.google.zxing.ResultPointCallback;
@@ -30,6 +29,7 @@ import com.google.zxing.common.detector.MathUtils;
 import com.google.zxing.qrcode.decoder.Version;
 
 import java.util.Map;
+import java.util.Random;
 
 /**
  * <p>Encapsulates logic that can detect a QR Code in an image, even if the QR Code
@@ -41,6 +41,7 @@ public class Detector {
 
     private final BitMatrix image;
     private ResultPointCallback resultPointCallback;
+    private boolean isFinderPatternCredible;
 
     public Detector(BitMatrix image) {
         this.image = image;
@@ -74,7 +75,7 @@ public class Detector {
      * @throws FormatException   if a QR Code cannot be decoded
      */
     public final DetectorResult detect(Map<DecodeHintType, ?> hints) throws NotFoundException, FormatException {
-
+        isFinderPatternCredible = false;
         resultPointCallback = hints == null ? null :
                 (ResultPointCallback) hints.get(DecodeHintType.NEED_RESULT_POINT_CALLBACK);
 
@@ -118,11 +119,13 @@ public class Detector {
         FinderPattern topRight = info.getTopRight();
         FinderPattern bottomLeft = info.getBottomLeft();
 
+        isFinderPatternCredible = isFinderPatternCredible(info);
+
         float moduleSize = calculateModuleSize(topLeft, topRight, bottomLeft);
         if (moduleSize < 1.0f) {
             throw NotFoundException.getNotFoundInstance();
         }
-        int dimension = computeDimension(topLeft, topRight, bottomLeft, moduleSize);
+        int dimension = computeDimension(topLeft, topRight, bottomLeft, moduleSize, isFinderPatternCredible);
         Version provisionalVersion = Version.getProvisionalVersionForDimension(dimension);
         int modulesBetweenFPCenters = provisionalVersion.getDimensionForVersion() - 7;
 
@@ -145,7 +148,7 @@ public class Detector {
             // if finder pattern forms a isosceles right triangle, the position of alignment finder
             // can be estimated, so there's no need to search a large area.
             int searchSize = 16;
-            if (isFinderPatternCredible(info)) {
+            if (isFinderPatternCredible) {
                 searchSize = 4;
             }
 
@@ -235,7 +238,8 @@ public class Detector {
     private static int computeDimension(ResultPoint topLeft,
                                         ResultPoint topRight,
                                         ResultPoint bottomLeft,
-                                        float moduleSize) throws NotFoundException {
+                                        float moduleSize,
+                                        boolean tryHard) throws NotFoundException {
         int tltrCentersDimension = MathUtils.round(ResultPoint.distance(topLeft, topRight) / moduleSize);
         int tlblCentersDimension = MathUtils.round(ResultPoint.distance(topLeft, bottomLeft) / moduleSize);
         int dimension = ((tltrCentersDimension + tlblCentersDimension) / 2) + 7;
@@ -248,7 +252,16 @@ public class Detector {
                 dimension--;
                 break;
             case 3:
-                throw NotFoundException.getNotFoundInstance();
+                if (tryHard) {
+                    // added by mao tianjiao.
+                    if (new Random().nextBoolean()) {
+                        dimension += 2;
+                    } else {
+                        dimension -= 2;
+                    }
+                } else {
+                    throw NotFoundException.getNotFoundInstance();
+                }
         }
         return dimension;
     }
