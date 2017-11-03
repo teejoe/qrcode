@@ -18,6 +18,7 @@ package com.google.zxing.qrcode.detector;
 
 import com.google.zxing.DecodeHintType;
 import com.google.zxing.FormatException;
+import com.google.zxing.Logging;
 import com.google.zxing.NotFoundException;
 import com.google.zxing.ResultPoint;
 import com.google.zxing.ResultPointCallback;
@@ -83,6 +84,33 @@ public class Detector {
         return processFinderPatternInfo(info);
     }
 
+    // if finder pattern forms a isosceles right triangle, it can be considered as credible,
+    // and we can try harder to finish subsequent decoding procedure.
+    // added by mao tianjiao
+    protected final boolean isFinderPatternCredible(FinderPatternInfo info) {
+        FinderPattern topLeft = info.getTopLeft();
+        FinderPattern topRight = info.getTopRight();
+        FinderPattern bottomLeft = info.getBottomLeft();
+
+        float topEdgeLength = ResultPoint.distance(topLeft, topRight);
+        float leftEdgeLength = ResultPoint.distance(topLeft, bottomLeft);
+        float diagonalEdgeLength = ResultPoint.distance(topRight, bottomLeft);
+
+        // isosceles triangle.
+        if (Math.abs((int)topEdgeLength - (int)leftEdgeLength) / leftEdgeLength > 0.1f) {
+            return false;
+        }
+
+        // right triangle.
+        float expectedDiagonalEdgeLength = (float) Math.sqrt(topEdgeLength * topEdgeLength
+                + leftEdgeLength * leftEdgeLength);
+        if (Math.abs((int)expectedDiagonalEdgeLength - (int)diagonalEdgeLength) / diagonalEdgeLength > 0.1f) {
+            return false;
+        }
+
+        return true;
+    }
+
     protected final DetectorResult processFinderPatternInfo(FinderPatternInfo info)
             throws NotFoundException, FormatException {
 
@@ -112,8 +140,17 @@ public class Detector {
             int estAlignmentX = (int) (topLeft.getX() + correctionToTopLeft * (bottomRightX - topLeft.getX()));
             int estAlignmentY = (int) (topLeft.getY() + correctionToTopLeft * (bottomRightY - topLeft.getY()));
 
+
+            // added by maotianjiao.
+            // if finder pattern forms a isosceles right triangle, the position of alignment finder
+            // can be estimated, so there's no need to search a large area.
+            int searchSize = 16;
+            if (isFinderPatternCredible(info)) {
+                searchSize = 4;
+            }
+
             // Kind of arbitrary -- expand search radius before giving up
-            for (int i = 4; i <= 16; i <<= 1) {
+            for (int i = 4; i <= searchSize; i <<= 1) {
                 try {
                     alignmentPattern = findAlignmentInRegion(moduleSize,
                             estAlignmentX,
