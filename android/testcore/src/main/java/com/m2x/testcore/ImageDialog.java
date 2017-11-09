@@ -21,6 +21,7 @@ import com.google.zxing.common.GlobalHistogramBinarizer;
 import com.google.zxing.common.HybridBinarizer;
 import com.google.zxing.qrcode.detector.AlignmentPattern;
 import com.google.zxing.qrcode.detector.FinderPattern;
+import com.google.zxing.qrcode.detector.FinderPatternInfo;
 import com.m2x.testcore.TestWrapper.Binarizer;
 import com.m2x.testcore.TestWrapper.DecodeResult;
 import com.m2x.testcore.widget.DecodeImageView;
@@ -62,6 +63,11 @@ public class ImageDialog extends Dialog {
                 } else if (point instanceof AlignmentPattern) {
                     mImageView.addAlignmentPattern((AlignmentPattern)point);
                 }
+            }
+
+            @Override
+            public void foundBestFinderPattern(FinderPatternInfo info) {
+                mImageView.addBestFinderPattern(info);
             }
         };
 
