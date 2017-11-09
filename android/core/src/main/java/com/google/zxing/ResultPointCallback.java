@@ -16,6 +16,8 @@
 
 package com.google.zxing;
 
+import com.google.zxing.qrcode.detector.FinderPatternInfo;
+
 /**
  * Callback which is invoked when a possible result point (significant
  * point in the barcode image such as a corner) is found.
@@ -26,4 +28,5 @@ public interface ResultPointCallback {
 
     void foundPossibleResultPoint(ResultPoint point);
 
+    void foundBestFinderPattern(FinderPatternInfo info);
 }
