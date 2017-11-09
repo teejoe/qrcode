@@ -4,9 +4,11 @@ import android.app.Dialog;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Toast;
 
 import com.google.zxing.BinaryBitmap;
@@ -71,8 +73,15 @@ public class ImageDialog extends Dialog {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
-
         setContentView(R.layout.dialog_image);
+
+        WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
+        Window window = getWindow();
+        lp.copyFrom(window.getAttributes());
+        lp.width = WindowManager.LayoutParams.MATCH_PARENT;
+        lp.height = WindowManager.LayoutParams.MATCH_PARENT;
+        window.setAttributes(lp);
+
         ButterKnife.bind(this);
 
         Picasso.with(getContext())
@@ -86,6 +95,11 @@ public class ImageDialog extends Dialog {
         Picasso.with(getContext())
                 .load(new File(mImageFilePath))
                 .into(mImageView);
+    }
+
+    @OnClick(R.id.close)
+    void onCloseClicked() {
+        dismiss();
     }
 
     @OnClick(R.id.hybrid)

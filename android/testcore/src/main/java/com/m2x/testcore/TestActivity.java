@@ -40,7 +40,7 @@ import io.reactivex.schedulers.Schedulers;
 
 public class TestActivity extends AppCompatActivity {
 
-    private static final String DIR_PATH = "/mnt/sdcard/qrcode/";
+    private static final String DIR_PATH = "/mnt/sdcard/qrcode/qrcode";
 
     private ArrayList<ViewModel> mListItems = new ArrayList<>();
 
