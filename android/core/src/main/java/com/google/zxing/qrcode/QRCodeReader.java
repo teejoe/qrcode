@@ -21,8 +21,10 @@ import com.google.zxing.BinaryBitmap;
 import com.google.zxing.ChecksumException;
 import com.google.zxing.DecodeHintType;
 import com.google.zxing.FormatException;
+import com.google.zxing.Logging;
 import com.google.zxing.NotFoundException;
 import com.google.zxing.Reader;
+import com.google.zxing.ReaderException;
 import com.google.zxing.Result;
 import com.google.zxing.ResultMetadataType;
 import com.google.zxing.ResultPoint;
@@ -67,16 +69,29 @@ public class QRCodeReader implements Reader {
     @Override
     public final Result decode(BinaryBitmap image, Map<DecodeHintType, ?> hints)
             throws NotFoundException, ChecksumException, FormatException {
-        DecoderResult decoderResult;
+        DecoderResult decoderResult = null;
         ResultPoint[] points;
         if (hints != null && hints.containsKey(DecodeHintType.PURE_BARCODE)) {
             BitMatrix bits = extractPureBits(image.getBlackMatrix());
             decoderResult = decoder.decode(bits, hints);
             points = NO_POINTS;
         } else {
-            DetectorResult detectorResult = new Detector(image.getBlackMatrix()).detect(hints);
-            decoderResult = decoder.decode(detectorResult.getBits(), hints);
+            Detector detector = new Detector(image.getBlackMatrix());
+            DetectorResult detectorResult = detector.detect(hints);
+            while (detector.hasNextPossible()) {
+                try {
+                    detectorResult = detector.detectNextPossible();
+                    decoderResult = decoder.decode(detectorResult.getBits(), hints);
+                    break;
+                } catch (ReaderException e) {
+                    Logging.logStackTrace(e);
+                }
+            }
             points = detectorResult.getPoints();
+
+            if (decoderResult == null) {
+                throw NotFoundException.getNotFoundInstance();
+            }
         }
 
         // If the code was mirrored: swap the bottom-left and the top-right points.

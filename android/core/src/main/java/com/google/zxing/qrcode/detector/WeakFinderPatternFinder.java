@@ -38,7 +38,7 @@ import java.util.Map;
  *
  * @author Mao Tianjiao
  */
-public class WeakFinderPatternFinder {
+public class WeakFinderPatternFinder implements IFinderPatternFinder {
 
     private static final int CENTER_QUORUM = 2;
     protected static final int MIN_SKIP = 3; // 1 pixel/module times 3 modules/center
@@ -74,7 +74,7 @@ public class WeakFinderPatternFinder {
         return possibleCenters;
     }
 
-    final FinderPatternInfo find(Map<DecodeHintType, ?> hints) throws NotFoundException {
+    public final FinderPatternInfo find(Map<DecodeHintType, ?> hints) throws NotFoundException {
         boolean tryHarder = hints != null && hints.containsKey(DecodeHintType.TRY_HARDER);
         boolean pureBarcode = hints != null && hints.containsKey(DecodeHintType.PURE_BARCODE);
         int maxI = image.getHeight();
@@ -479,7 +479,7 @@ public class WeakFinderPatternFinder {
             // Re-cross check
             centerJ = crossCheckHorizontal((int) centerJ, (int) centerI, stateCount[1], stateCountTotal);
             if (!Float.isNaN(centerJ) &&
-                    (pureBarcode || crossCheckDiagonal((int) centerI, (int) centerJ, stateCount[1], stateCountTotal))) {
+                    (!pureBarcode || crossCheckDiagonal((int) centerI, (int) centerJ, stateCount[1], stateCountTotal))) {
                 float estimatedModuleSize = stateCountTotal / 5.0f;
                 boolean found = false;
                 for (int index = 0; index < possibleCenters.size(); index++) {

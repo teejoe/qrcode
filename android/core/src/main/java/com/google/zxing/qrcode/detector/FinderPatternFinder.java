@@ -37,7 +37,7 @@ import java.util.Map;
  *
  * @author Sean Owen
  */
-public class FinderPatternFinder {
+public class FinderPatternFinder implements IFinderPatternFinder {
 
     private static final int CENTER_QUORUM = 2;
     protected static final int MIN_SKIP = 3; // 1 pixel/module times 3 modules/center
@@ -47,7 +47,7 @@ public class FinderPatternFinder {
     private final List<FinderPattern> possibleCenters;
     private boolean hasSkipped;
     private final int[] crossCheckStateCount;
-    private final ResultPointCallback resultPointCallback;
+    private ResultPointCallback resultPointCallback;
 
     /**
      * <p>Creates a finder that will search the image for three finder patterns.</p>
@@ -73,7 +73,11 @@ public class FinderPatternFinder {
         return possibleCenters;
     }
 
-    final FinderPatternInfo find(Map<DecodeHintType, ?> hints) throws NotFoundException {
+    public void setResultPointCallback(ResultPointCallback callback) {
+        resultPointCallback = callback;
+    }
+
+    public final FinderPatternInfo find(Map<DecodeHintType, ?> hints) throws NotFoundException {
         boolean tryHarder = hints != null && hints.containsKey(DecodeHintType.TRY_HARDER);
         boolean pureBarcode = hints != null && hints.containsKey(DecodeHintType.PURE_BARCODE);
         int maxI = image.getHeight();
