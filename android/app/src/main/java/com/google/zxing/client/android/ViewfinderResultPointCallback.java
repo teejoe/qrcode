@@ -18,6 +18,7 @@ package com.google.zxing.client.android;
 
 import com.google.zxing.ResultPoint;
 import com.google.zxing.ResultPointCallback;
+import com.google.zxing.qrcode.detector.FinderPatternInfo;
 
 final class ViewfinderResultPointCallback implements ResultPointCallback {
 
@@ -32,4 +33,8 @@ final class ViewfinderResultPointCallback implements ResultPointCallback {
         viewfinderView.addPossibleResultPoint(point);
     }
 
+    @Override
+    public void foundBestFinderPattern(FinderPatternInfo info) {
+
+    }
 }

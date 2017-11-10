@@ -20,25 +20,25 @@ package com.google.zxing;
  * Thrown when a barcode was not found in the image. It might have been
  * partially detected but could not be confirmed.
  *
- * @author Sean Owen
+ * @author Mao Tianjiao
  */
-public class NotFoundException extends ReaderException {
+public final class LowContrastException extends NotFoundException {
 
-    private static final NotFoundException INSTANCE = new NotFoundException();
+    private static final LowContrastException INSTANCE = new LowContrastException();
 
     static {
         if (!DEBUG)
             INSTANCE.setStackTrace(NO_TRACE); // since it's meaningless
     }
 
-    public NotFoundException() {
+    private LowContrastException() {
         // do nothing
         super();
     }
 
-    public static NotFoundException getNotFoundInstance() {
+    public static LowContrastException getLowContrastInstance() {
         if (DEBUG) {
-            return new NotFoundException();
+            return new LowContrastException();
         }
         return INSTANCE;
     }

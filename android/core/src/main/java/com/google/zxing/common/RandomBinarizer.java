@@ -35,7 +35,7 @@ public class RandomBinarizer extends GlobalHistogramBinarizer {
         float factor = CANDIDATES[rand];
         if (factor < 0.0f) {
             mMatrix =  super.getBlackMatrix();      // Global histogram binarizer.
-            Logging.d("user global histogram binarizer");
+            Logging.d("use global histogram binarizer");
         } else if (factor < 0.00001f && factor > -0.00001f) {
             HybridBinarizer binarizer = new HybridBinarizer(getLuminanceSource());
             mMatrix = binarizer.getBlackMatrix();

@@ -19,12 +19,16 @@ package com.google.zxing.client.android;
 import android.graphics.Bitmap;
 
 import com.google.zxing.BinaryBitmap;
+import com.google.zxing.ContrastedLuminanceSource;
 import com.google.zxing.DecodeHintType;
+import com.google.zxing.DownscaledLuminanceSource;
+import com.google.zxing.Logging;
+import com.google.zxing.LowContrastException;
+import com.google.zxing.LuminanceSource;
 import com.google.zxing.MultiFormatReader;
 import com.google.zxing.PlanarYUVLuminanceSource;
 import com.google.zxing.ReaderException;
 import com.google.zxing.Result;
-import com.google.zxing.common.HybridBinarizer;
 import com.google.zxing.common.RandomBinarizer;
 
 import android.os.Bundle;
@@ -43,6 +47,7 @@ final class DecodeHandler extends Handler {
     private final CaptureActivity activity;
     private final MultiFormatReader multiFormatReader;
     private boolean running = true;
+    private ReaderException mLastException;
 
     DecodeHandler(CaptureActivity activity, Map<DecodeHintType, Object> hints) {
         multiFormatReader = new MultiFormatReader();
@@ -78,16 +83,52 @@ final class DecodeHandler extends Handler {
         long start = System.currentTimeMillis();
         Result rawResult = null;
         PlanarYUVLuminanceSource source = activity.getCameraManager().buildLuminanceSource(data, width, height);
-        if (source != null) {
-            BinaryBitmap bitmap = new BinaryBitmap(new RandomBinarizer(source));
-            try {
-                rawResult = multiFormatReader.decodeWithState(bitmap);
-            } catch (ReaderException re) {
-                // continue
-            } finally {
-                multiFormatReader.reset();
+        LuminanceSource processedSource = source;
+        if (mLastException instanceof LowContrastException) {
+            // increase contrast.
+            Logging.d("increase contrast");
+            processedSource = new ContrastedLuminanceSource(source);
+        } else {
+            if ((System.currentTimeMillis() & 0x03) == 0) {
+                // randomly increase contrast.
+                Logging.d("randomly increase contrast");
+                processedSource = new ContrastedLuminanceSource(source);
             }
         }
+
+        if (processedSource != null) {
+            BinaryBitmap bitmap = null;
+            if ((start & 0x03) == 0) {  // mod 4: randomly try downscale image.
+                Logging.d("randomly down scale image");
+                LuminanceSource src = processedSource;
+                for (int i = 0; i < 3; i++) {
+                    src = new DownscaledLuminanceSource(src);
+                    bitmap = new BinaryBitmap(new RandomBinarizer(src));
+
+                    try {
+                        rawResult = multiFormatReader.decodeWithState(bitmap);
+                        if (rawResult != null) break;
+                    } catch (ReaderException re) {
+                        // continue
+                        mLastException = re;
+                    } finally {
+                        multiFormatReader.reset();
+                    }
+                }
+            } else {
+                bitmap = new BinaryBitmap(new RandomBinarizer(processedSource));
+                try {
+                    rawResult = multiFormatReader.decodeWithState(bitmap);
+                } catch (ReaderException re) {
+                    // continue
+                    mLastException = re;
+                } finally {
+                    multiFormatReader.reset();
+                }
+            }
+        }
+
+        Logging.d("cost:" + (System.currentTimeMillis() - start) + "ms");
 
         Handler handler = activity.getHandler();
         if (rawResult != null) {

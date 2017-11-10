@@ -17,6 +17,8 @@
 package com.google.zxing.common;
 
 import com.google.zxing.Binarizer;
+import com.google.zxing.Logging;
+import com.google.zxing.LowContrastException;
 import com.google.zxing.LuminanceSource;
 import com.google.zxing.NotFoundException;
 
@@ -182,7 +184,7 @@ public class GlobalHistogramBinarizer extends Binarizer {
         // If there is too little contrast in the image to pick a meaningful black point, throw rather
         // than waste time trying to decode the image, and risk false positives.
         if (secondPeak - firstPeak <= numBuckets / 16) {
-            throw NotFoundException.getNotFoundInstance();
+            //throw LowContrastException.getLowContrastInstance();
         }
 
         // Find a valley between them that is low and closer to the white peak.

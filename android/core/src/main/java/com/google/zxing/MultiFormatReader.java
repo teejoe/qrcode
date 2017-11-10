@@ -171,6 +171,7 @@ public final class MultiFormatReader implements Reader {
                     return reader.decode(image, hints);
                 } catch (ReaderException re) {
                     // continue
+                    Logging.d(re.getStackTrace()[0].toString());
                 }
             }
         }

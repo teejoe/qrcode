@@ -7,8 +7,6 @@ package com.google.zxing;
 
 public class ContrastedLuminanceSource extends LuminanceSource {
 
-    private static final float SCALE_FACTOR = 2.0f;
-
     private final byte[] data;
 
     public ContrastedLuminanceSource(LuminanceSource source) {
