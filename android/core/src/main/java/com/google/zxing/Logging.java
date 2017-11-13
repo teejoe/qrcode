@@ -111,6 +111,12 @@ public class Logging {
         }
     }
 
+    public static void logStackTop(Throwable throwable) {
+        if (throwable.getStackTrace().length > 0) {
+            d(throwable.getStackTrace()[0].toString());
+        }
+    }
+
     public static void d(String tag, String msg) {
         d("" + tag + ": " + msg);
     }

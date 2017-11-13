@@ -41,9 +41,8 @@ public class Detector {
 
     private final BitMatrix image;
     private ResultPointCallback resultPointCallback;
-    private IFinderPatternFinder mFinderPatternFinder;
+    private BaseFinderPatternFinder mFinderPatternFinder;
     private boolean isFinderPatternCredible;
-    private boolean isModuleSizeCredible;
     private boolean hasTriedAlternateModuleSize;
     private boolean hasTriedAlternateDimension;
     private FinderPatternInfo mFinderPatternInfo;
@@ -81,7 +80,6 @@ public class Detector {
      */
     public final DetectorResult detect(Map<DecodeHintType, ?> hints) throws NotFoundException, FormatException {
         isFinderPatternCredible = false;
-        isModuleSizeCredible = false;
         hasTriedAlternateDimension = false;
         hasTriedAlternateModuleSize = false;
 
@@ -121,7 +119,7 @@ public class Detector {
             return null;
         }
 
-        if (!hasTriedAlternateModuleSize && !isModuleSizeCredible) {
+        if (!hasTriedAlternateModuleSize) {
             hasTriedAlternateModuleSize = true;
             return processFinderPatternInfo(mFinderPatternInfo);
         }
@@ -171,15 +169,10 @@ public class Detector {
         float moduleSize = calculateModuleSize(topLeft, topRight, bottomLeft);
 
         // add by Mao Tianjiao
-        float estimateModuleSize = (topLeft.getEstimatedModuleSize() + topRight.getEstimatedModuleSize()
-                    + bottomLeft.getEstimatedModuleSize()) / 3.0f;
-        if (Math.abs(moduleSize - estimateModuleSize) / estimateModuleSize > 0.1f) {
-            isModuleSizeCredible = false;
-        } else {
-            isModuleSizeCredible = true;
-        }
         if (hasTriedAlternateModuleSize) {
-            moduleSize = estimateModuleSize;
+            Logging.d("try alternate module size");
+            moduleSize = (topLeft.getEstimatedModuleSize() + topRight.getEstimatedModuleSize()
+                    + bottomLeft.getEstimatedModuleSize()) / 3.0f;
         }
         Logging.d("module size:" + moduleSize);
         //////////////////////
@@ -189,6 +182,10 @@ public class Detector {
             throw NotFoundException.getNotFoundInstance();
         }
         int dimension = computeDimension(topLeft, topRight, bottomLeft, moduleSize, isFinderPatternCredible);
+        if (dimension < 21 && isFinderPatternCredible) {
+            dimension = 21;
+        }
+
         Logging.d("dimension:" + dimension);
         Version provisionalVersion = Version.getProvisionalVersionForDimension(dimension);
         int modulesBetweenFPCenters = provisionalVersion.getDimensionForVersion() - 7;
@@ -319,8 +316,10 @@ public class Detector {
                 if (tryHard) {
                     // added by mao tianjiao.
                     if (hasTriedAlternateDimension) {
+                        Logging.d("dimension += 2");
                         dimension += 2;
                     } else {
+                        Logging.d("dimension -= 2");
                         dimension -= 2;
                     }
                 } else {

@@ -38,13 +38,12 @@ import java.util.Map;
  *
  * @author Mao Tianjiao
  */
-public class WeakFinderPatternFinder implements IFinderPatternFinder {
+public class WeakFinderPatternFinder extends BaseFinderPatternFinder {
 
     private static final int CENTER_QUORUM = 2;
     protected static final int MIN_SKIP = 3; // 1 pixel/module times 3 modules/center
     protected static final int MAX_MODULES = 57; // support up to version 10 for mobile clients
 
-    private final BitMatrix image;
     private final List<FinderPattern> possibleCenters;
     private boolean hasSkipped;
     private final int[] crossCheckStateCount;
@@ -60,7 +59,7 @@ public class WeakFinderPatternFinder implements IFinderPatternFinder {
     }
 
     public WeakFinderPatternFinder(BitMatrix image, ResultPointCallback resultPointCallback) {
-        this.image = image;
+        super(image);
         this.possibleCenters = new ArrayList<>();
         this.crossCheckStateCount = new int[3];
         this.resultPointCallback = resultPointCallback;
@@ -202,7 +201,7 @@ public class WeakFinderPatternFinder implements IFinderPatternFinder {
             return false;
         }
         float moduleSize = totalModuleSize / 5.0f;
-        float maxVariance = moduleSize / 1.5f;
+        float maxVariance = moduleSize / 2.0f;
         // Allow less than 50% variance from 1-3-1 proportions
         return
                 Math.abs(moduleSize - stateCount[0]) < maxVariance &&
@@ -576,8 +575,17 @@ public class WeakFinderPatternFinder implements IFinderPatternFinder {
         int startSize = possibleCenters.size();
         Logging.d("find " + startSize + " possible centers");
         if (startSize < 3) {
-            // Couldn't find enough finder patterns
-            throw NotFoundException.getNotFoundInstance();
+            if (hasTwoCrediblePatterns(possibleCenters)) {
+                FinderPattern third = guessThirdPattern(possibleCenters.get(0), possibleCenters.get(1));
+                if (third == null) {
+                    // Couldn't find enough finder patterns
+                    throw NotFoundException.getNotFoundInstance();
+                } else {
+                    possibleCenters.add(third);
+                }
+            } else {
+                throw NotFoundException.getNotFoundInstance();
+            }
         }
 
         // Filter outlier possibilities whose module size is too different
@@ -633,6 +641,7 @@ public class WeakFinderPatternFinder implements IFinderPatternFinder {
                 possibleCenters.get(2)
         };
     }
+
 
     /**
      * <p>Orders by furthest from average</p>

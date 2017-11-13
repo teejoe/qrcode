@@ -77,21 +77,32 @@ public class QRCodeReader implements Reader {
             points = NO_POINTS;
         } else {
             Detector detector = new Detector(image.getBlackMatrix());
-            DetectorResult detectorResult = detector.detect(hints);
-            while (detector.hasNextPossible()) {
-                try {
-                    detectorResult = detector.detectNextPossible();
-                    decoderResult = decoder.decode(detectorResult.getBits(), hints);
-                    break;
-                } catch (ReaderException e) {
-                    Logging.logStackTrace(e);
+
+            DetectorResult detectorResult = null;
+            try {
+                detectorResult = detector.detect(hints);
+                decoderResult = decoder.decode(detectorResult.getBits(), hints);
+            } catch (ReaderException e) {
+                Logging.logStackTop(e);
+            }
+
+            if (decoderResult == null) {
+                while (detector.hasNextPossible()) {
+                    try {
+                        detectorResult = detector.detectNextPossible();
+                        decoderResult = decoder.decode(detectorResult.getBits(), hints);
+                        break;
+                    } catch (ReaderException e) {
+                        Logging.logStackTop(e);
+                    }
                 }
             }
-            points = detectorResult.getPoints();
 
             if (decoderResult == null) {
                 throw NotFoundException.getNotFoundInstance();
             }
+
+            points = detectorResult.getPoints();
         }
 
         // If the code was mirrored: swap the bottom-left and the top-right points.
