@@ -44,7 +44,7 @@ final class DecodeThread extends Thread {
 
     private final CaptureActivity activity;
     private final Map<DecodeHintType, Object> hints;
-    private Handler handler;
+    private DecodeHandler handler;
     private final CountDownLatch handlerInitLatch;
 
     DecodeThread(CaptureActivity activity,
@@ -91,6 +91,10 @@ final class DecodeThread extends Thread {
         }
         hints.put(DecodeHintType.NEED_RESULT_POINT_CALLBACK, resultPointCallback);
         Log.i("DecodeThread", "Hints: " + hints);
+    }
+
+    public void resetDecodeState() {
+        handler.resetDecodeState();
     }
 
     Handler getHandler() {

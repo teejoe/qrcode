@@ -98,6 +98,12 @@ public enum DecodeHintType {
      */
     ALLOWED_EAN_EXTENSIONS(int[].class),
 
+    /**
+     * Decode state when using camera framing, this keeps track on last failure reason.
+     * and will try alternative decoding params next round according to the state.
+     */
+    DECODE_STATE(DecodeState.class),
+
     // End of enumeration values.
     ;
 

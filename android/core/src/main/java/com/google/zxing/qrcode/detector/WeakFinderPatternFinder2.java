@@ -38,7 +38,7 @@ import java.util.Map;
  *
  * @author Sean Owen
  */
-public class FinderPatternFinder extends BaseFinderPatternFinder {
+public class WeakFinderPatternFinder2 extends BaseFinderPatternFinder {
 
     protected static final int MIN_SKIP = 3; // 1 pixel/module times 3 modules/center
     protected static final int MAX_MODULES = 57; // support up to version 10 for mobile clients
@@ -54,11 +54,11 @@ public class FinderPatternFinder extends BaseFinderPatternFinder {
      *
      * @param image image to search
      */
-    public FinderPatternFinder(BitMatrix image) {
+    public WeakFinderPatternFinder2(BitMatrix image) {
         this(image, null);
     }
 
-    public FinderPatternFinder(BitMatrix image, ResultPointCallback resultPointCallback) {
+    public WeakFinderPatternFinder2(BitMatrix image, ResultPointCallback resultPointCallback) {
         super(image);
         this.possibleCenters = new ArrayList<>();
         this.crossCheckStateCount = new int[5];
@@ -216,12 +216,10 @@ public class FinderPatternFinder extends BaseFinderPatternFinder {
         }
         float moduleSize = totalModuleSize / 7.0f;
         float maxVariance = moduleSize / 2.0f;
-        // Allow less than 50% variance from 1-1-3-1-1 proportions
+        // Allow less than 50% variance from 1-(5)-1 proportions
         return
                 Math.abs(moduleSize - stateCount[0]) < maxVariance &&
-                        Math.abs(moduleSize - stateCount[1]) < maxVariance &&
-                        Math.abs(3.0f * moduleSize - stateCount[2]) < 3 * maxVariance &&
-                        Math.abs(moduleSize - stateCount[3]) < maxVariance &&
+                        Math.abs(5.0f * moduleSize - -stateCount[1] - stateCount[2] - stateCount[3]) < 5 * maxVariance &&
                         Math.abs(moduleSize - stateCount[4]) < maxVariance;
     }
 

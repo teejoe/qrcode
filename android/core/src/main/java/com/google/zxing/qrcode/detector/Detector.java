@@ -17,6 +17,7 @@
 package com.google.zxing.qrcode.detector;
 
 import com.google.zxing.DecodeHintType;
+import com.google.zxing.DecodeState;
 import com.google.zxing.FormatException;
 import com.google.zxing.Logging;
 import com.google.zxing.NotFoundException;
@@ -41,6 +42,7 @@ public class Detector {
 
     private final BitMatrix image;
     private ResultPointCallback resultPointCallback;
+    private DecodeState decodeState;
     private BaseFinderPatternFinder mFinderPatternFinder;
     private boolean isFinderPatternCredible;
     private boolean hasTriedAlternateModuleSize;
@@ -85,11 +87,32 @@ public class Detector {
 
         resultPointCallback = hints == null ? null :
                 (ResultPointCallback) hints.get(DecodeHintType.NEED_RESULT_POINT_CALLBACK);
+        decodeState = hints == null ? null : (DecodeState) hints.get(DecodeHintType.DECODE_STATE);
 
-        if ((System.currentTimeMillis() & 0x01) == 0) {
-            mFinderPatternFinder = new FinderPatternFinder(image, resultPointCallback);
+        if (decodeState != null) {
+            int rand = (decodeState.currentRound & 0x03);   // (0,1,2,3)
+            if (rand <= 1) {
+                if (decodeState.previousFailureHint.finderPatternNotEnough) {
+                    if ((System.currentTimeMillis() & 0x01) == 0) {
+                        mFinderPatternFinder = new WeakFinderPatternFinder2(image, resultPointCallback);
+                        Logging.d("use weak finder 2");
+                    } else {
+                        mFinderPatternFinder = new WeakFinderPatternFinder(image, resultPointCallback);
+                        Logging.d("use weak finder 1");
+                    }
+                } else {
+                    mFinderPatternFinder = new FinderPatternFinder(image, resultPointCallback);
+                    Logging.d("use regular finder");
+                }
+            } else if (rand == 2) {
+                mFinderPatternFinder = new WeakFinderPatternFinder(image, resultPointCallback);
+                Logging.d("use weak finder 1");
+            } else if (rand == 3) {
+                mFinderPatternFinder = new WeakFinderPatternFinder2(image, resultPointCallback);
+                Logging.d("use weak finder 2");
+            }
         } else {
-            mFinderPatternFinder = new WeakFinderPatternFinder(image, resultPointCallback);
+            mFinderPatternFinder = new FinderPatternFinder(image, resultPointCallback);
         }
         mFinderPatternInfo = mFinderPatternFinder.find(hints);
 
@@ -98,6 +121,9 @@ public class Detector {
         }
 
         isFinderPatternCredible = isFinderPatternCredible(mFinderPatternInfo);
+        if (!isFinderPatternCredible && decodeState != null) {
+            decodeState.previousFailureHint.finderPatternInCredible = true;
+        }
 
         return processFinderPatternInfo(mFinderPatternInfo);
     }

@@ -21,9 +21,9 @@ import android.graphics.Bitmap;
 import com.google.zxing.BinaryBitmap;
 import com.google.zxing.ContrastedLuminanceSource;
 import com.google.zxing.DecodeHintType;
+import com.google.zxing.DecodeState;
 import com.google.zxing.DownscaledLuminanceSource;
 import com.google.zxing.Logging;
-import com.google.zxing.LowContrastException;
 import com.google.zxing.LuminanceSource;
 import com.google.zxing.MultiFormatReader;
 import com.google.zxing.PlanarYUVLuminanceSource;
@@ -47,12 +47,18 @@ final class DecodeHandler extends Handler {
     private final CaptureActivity activity;
     private final MultiFormatReader multiFormatReader;
     private boolean running = true;
-    private ReaderException mLastException;
+    private DecodeState mDecodeState;
 
     DecodeHandler(CaptureActivity activity, Map<DecodeHintType, Object> hints) {
         multiFormatReader = new MultiFormatReader();
         multiFormatReader.setHints(hints);
+        mDecodeState = new DecodeState();
+        hints.put(DecodeHintType.DECODE_STATE, mDecodeState);
         this.activity = activity;
+    }
+
+    public void resetDecodeState() {
+        mDecodeState.reset();
     }
 
     @Override
@@ -81,10 +87,12 @@ final class DecodeHandler extends Handler {
      */
     private void decode(byte[] data, int width, int height) {
         long start = System.currentTimeMillis();
+        mDecodeState.currentRound++;
+        Logging.d("decode round:" + mDecodeState.currentRound);
         Result rawResult = null;
         PlanarYUVLuminanceSource source = activity.getCameraManager().buildLuminanceSource(data, width, height);
         LuminanceSource processedSource = source;
-        if (mLastException instanceof LowContrastException) {
+        if (mDecodeState.previousFailureHint.lowContrastImage) {
             // increase contrast.
             Logging.d("increase contrast");
             processedSource = new ContrastedLuminanceSource(source);
@@ -110,7 +118,6 @@ final class DecodeHandler extends Handler {
                         if (rawResult != null) break;
                     } catch (ReaderException re) {
                         // continue
-                        mLastException = re;
                     } finally {
                         multiFormatReader.reset();
                     }
@@ -121,7 +128,6 @@ final class DecodeHandler extends Handler {
                     rawResult = multiFormatReader.decodeWithState(bitmap);
                 } catch (ReaderException re) {
                     // continue
-                    mLastException = re;
                 } finally {
                     multiFormatReader.reset();
                 }

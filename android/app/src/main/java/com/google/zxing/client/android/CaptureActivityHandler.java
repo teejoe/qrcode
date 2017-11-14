@@ -80,9 +80,11 @@ public final class CaptureActivityHandler extends Handler {
     public void handleMessage(Message message) {
         switch (message.what) {
             case R.id.restart_preview:
+                decodeThread.resetDecodeState();
                 restartPreviewAndDecode();
                 break;
             case R.id.decode_succeeded:
+                decodeThread.resetDecodeState();
                 state = State.SUCCESS;
                 Bundle bundle = message.getData();
                 Bitmap barcode = null;
