@@ -11,6 +11,12 @@ public class DecodeState {
         WEAK2
     }
 
+    public enum BinarizerAlgorithm {
+        GLOBAL_HISTOGRAM,
+        HYBRID,
+        ADJUSTED_HYBRID
+    }
+
     public static class FinderPatternHint {
         public boolean notEnough;           // found less than 3 finder patterns.
         public boolean tooMany;             // found more than MAX_CANDIDATES finder patterns.
@@ -32,6 +38,7 @@ public class DecodeState {
         public FinderPatternHint weakFinderPatternFinderHint = new FinderPatternHint();
         public FinderPatternHint weakFinderPatternFinder2Hint = new FinderPatternHint();
         public FinderPatternAlgorithm finderPatternAlgorithm;
+        public BinarizerAlgorithm binarizerAlgorithm;
 
         public void clear() {
             lowContrastImage = false;
@@ -41,6 +48,7 @@ public class DecodeState {
             weakFinderPatternFinderHint.clear();
             weakFinderPatternFinder2Hint.clear();
             finderPatternAlgorithm = FinderPatternAlgorithm.REGULAR;
+            binarizerAlgorithm = BinarizerAlgorithm.GLOBAL_HISTOGRAM;
         }
     }
 
@@ -58,6 +66,7 @@ public class DecodeState {
         StringBuilder builder = new StringBuilder();
         builder.append("round:").append(currentRound)
                 .append("\nscaleFactor:").append(scaleFactor)
+                .append("\nbinarizer:").append(previousFailureHint.binarizerAlgorithm.name())
                 .append("\nfinder pattern finder:")
                 .append(previousFailureHint.finderPatternAlgorithm.name())
                 .append("\nfinder pattern sensitivity:")

@@ -622,7 +622,6 @@ public class WeakFinderPatternFinder extends BaseFinderPatternFinder {
 
             for (int i = 0; i < possibleCenters.size() && possibleCenters.size() > 3; i++) {
                 FinderPattern pattern = possibleCenters.get(i);
-                Logging.d("(" + pattern.getX() + "," + pattern.getY() + ")");
                 if (Math.abs(pattern.getEstimatedModuleSize() - average) > limit) {
                     possibleCenters.remove(i);
                     i--;
@@ -644,11 +643,6 @@ public class WeakFinderPatternFinder extends BaseFinderPatternFinder {
 
             possibleCenters.subList(3, possibleCenters.size()).clear();
         }
-
-        Logging.d("best centers:" +
-                "(" + possibleCenters.get(0).getX() + "," + possibleCenters.get(0).getY() + "), " +
-                "(" + possibleCenters.get(1).getX() + "," + possibleCenters.get(1).getY() + "), " +
-                "(" + possibleCenters.get(2).getX() + "," + possibleCenters.get(2).getY() + ")");
 
         return new FinderPattern[]{
                 possibleCenters.get(0),

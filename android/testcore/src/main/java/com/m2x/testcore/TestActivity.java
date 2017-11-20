@@ -17,12 +17,16 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.zxing.DecodeHintType;
+import com.google.zxing.DecodeState;
 import com.m2x.testcore.TestWrapper.Binarizer;
 import com.m2x.testcore.TestWrapper.DecodeResult;
 import com.squareup.picasso.Picasso;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.Map;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -91,9 +95,13 @@ public class TestActivity extends AppCompatActivity {
                     Bitmap bitmap = BitmapFactory.decodeFile(model.imagePath);
                     if (bitmap != null) {
                         long start = System.currentTimeMillis();
-                        DecodeResult result = TestWrapper.decodeBitmap(bitmap, mBinarizer, null);
+                        Map<DecodeHintType, Object> hints = new EnumMap<>(DecodeHintType.class);
+
+                        DecodeState state = new DecodeState();
+                        hints.put(DecodeHintType.DECODE_STATE, state);
+                        DecodeResult result = TestWrapper.decodeBitmap(bitmap, mBinarizer, hints);
                         if (!result.success) {
-                            result = TestWrapper.decodeBitmap(bitmap, Binarizer.ADJUSTED_HYBRID, null);
+                            result = TestWrapper.decodeBitmap(bitmap, Binarizer.ADJUSTED_HYBRID, hints);
                         }
                         model.cost = System.currentTimeMillis() - start;
                         model.finished = true;

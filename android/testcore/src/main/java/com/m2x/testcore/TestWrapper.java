@@ -8,6 +8,7 @@ import android.graphics.Matrix;
 
 import com.google.zxing.BinaryBitmap;
 import com.google.zxing.DecodeHintType;
+import com.google.zxing.DecodeState;
 import com.google.zxing.Logging;
 import com.google.zxing.LuminanceSource;
 import com.google.zxing.NotFoundException;

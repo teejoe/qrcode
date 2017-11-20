@@ -111,7 +111,6 @@ public class QRCodeReader implements Reader {
                 for (int i = 0; i < points.length; i++) {
                     transformedPoints[i] = new ResultPoint(points[i].getX() / decodeState.scaleFactor,
                             points[i].getY() / decodeState.scaleFactor);
-                    Logging.d("x: " + transformedPoints[i].getX() + " y:" + transformedPoints[i].getY());
                 }
                 points = transformedPoints;
                 Logging.d(decodeState.toString());

@@ -30,6 +30,7 @@ import com.google.zxing.PlanarYUVLuminanceSource;
 import com.google.zxing.ReaderException;
 import com.google.zxing.Result;
 import com.google.zxing.common.RandomBinarizer;
+import com.google.zxing.common.StatefulBinarizer;
 
 import android.os.Bundle;
 import android.os.Handler;
@@ -112,7 +113,7 @@ final class DecodeHandler extends Handler {
                 for (int i = 0; i < 3; i++) {
                     src = new DownscaledLuminanceSource(src);
                     mDecodeState.scaleFactor = mDecodeState.scaleFactor * 0.5f;
-                    bitmap = new BinaryBitmap(new RandomBinarizer(src));
+                    bitmap = new BinaryBitmap(new StatefulBinarizer(src, mDecodeState));
 
                     try {
                         rawResult = multiFormatReader.decodeWithState(bitmap);
@@ -124,7 +125,7 @@ final class DecodeHandler extends Handler {
                     }
                 }
             } else {
-                bitmap = new BinaryBitmap(new RandomBinarizer(processedSource));
+                bitmap = new BinaryBitmap(new StatefulBinarizer(processedSource, mDecodeState));
                 mDecodeState.scaleFactor = 1.0f;
                 try {
                     rawResult = multiFormatReader.decodeWithState(bitmap);
