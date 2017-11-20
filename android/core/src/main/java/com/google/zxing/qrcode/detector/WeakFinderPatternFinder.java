@@ -17,6 +17,7 @@
 package com.google.zxing.qrcode.detector;
 
 import com.google.zxing.DecodeHintType;
+import com.google.zxing.DecodeState;
 import com.google.zxing.Logging;
 import com.google.zxing.NotFoundException;
 import com.google.zxing.ResultPoint;
@@ -76,6 +77,8 @@ public class WeakFinderPatternFinder extends BaseFinderPatternFinder {
     public final FinderPatternInfo find(Map<DecodeHintType, ?> hints) throws NotFoundException {
         boolean tryHarder = hints != null && hints.containsKey(DecodeHintType.TRY_HARDER);
         boolean pureBarcode = hints != null && hints.containsKey(DecodeHintType.PURE_BARCODE);
+        decodeState = hints == null ? null : (DecodeState) hints.get(DecodeHintType.DECODE_STATE);
+
         int maxI = image.getHeight();
         int maxJ = image.getWidth();
         // We are looking for white/black/white modules in
@@ -188,7 +191,7 @@ public class WeakFinderPatternFinder extends BaseFinderPatternFinder {
      * @return true iff the proportions of the counts is close enough to the 1/3/1 ratios
      * used by finder patterns to be considered a match
      */
-    protected static boolean foundPatternCross(int[] stateCount) {
+    protected boolean foundPatternCross(int[] stateCount) {
         int totalModuleSize = 0;
         for (int i = 0; i < 3; i++) {
             int count = stateCount[i];
@@ -201,7 +204,7 @@ public class WeakFinderPatternFinder extends BaseFinderPatternFinder {
             return false;
         }
         float moduleSize = totalModuleSize / 5.0f;
-        float maxVariance = moduleSize / 2.0f;
+        float maxVariance = (moduleSize / 2.0f) * (1.0f + sensitivityIncrease);
         // Allow less than 50% variance from 1-3-1 proportions
         return
                 Math.abs(moduleSize - stateCount[0]) < maxVariance &&
@@ -575,6 +578,10 @@ public class WeakFinderPatternFinder extends BaseFinderPatternFinder {
         int startSize = possibleCenters.size();
         Logging.d("find " + startSize + " possible centers");
         if (startSize < 3) {
+            if (decodeState != null) {
+                decodeState.previousFailureHint.weakFinderPatternFinderHint.notEnough = true;
+                decodeState.previousFailureHint.weakFinderPatternFinderHint.tooMany = false;
+            }
             if (hasTwoCrediblePatterns(possibleCenters)) {
                 FinderPattern third = guessThirdPattern(possibleCenters.get(0), possibleCenters.get(1));
                 if (third == null) {
@@ -586,6 +593,9 @@ public class WeakFinderPatternFinder extends BaseFinderPatternFinder {
             } else {
                 throw NotFoundException.getNotFoundInstance();
             }
+        } else if (startSize > MAX_CANDIDATES && decodeState != null) {
+            decodeState.previousFailureHint.weakFinderPatternFinderHint.notEnough = false;
+            decodeState.previousFailureHint.weakFinderPatternFinderHint.tooMany = true;
         }
 
         // Filter outlier possibilities whose module size is too different

@@ -47,7 +47,6 @@ public class FinderPatternFinder extends BaseFinderPatternFinder {
     private boolean hasSkipped;
     private final int[] crossCheckStateCount;
     private ResultPointCallback resultPointCallback;
-    private DecodeState decodeState;
 
     /**
      * <p>Creates a finder that will search the image for three finder patterns.</p>
@@ -71,10 +70,6 @@ public class FinderPatternFinder extends BaseFinderPatternFinder {
 
     protected final List<FinderPattern> getPossibleCenters() {
         return possibleCenters;
-    }
-
-    public void setResultPointCallback(ResultPointCallback callback) {
-        resultPointCallback = callback;
     }
 
     public final FinderPatternInfo find(Map<DecodeHintType, ?> hints) throws NotFoundException {
@@ -202,7 +197,7 @@ public class FinderPatternFinder extends BaseFinderPatternFinder {
      * @return true iff the proportions of the counts is close enough to the 1/1/3/1/1 ratios
      * used by finder patterns to be considered a match
      */
-    protected static boolean foundPatternCross(int[] stateCount) {
+    protected boolean foundPatternCross(int[] stateCount) {
         int totalModuleSize = 0;
         for (int i = 0; i < 5; i++) {
             int count = stateCount[i];
@@ -215,7 +210,7 @@ public class FinderPatternFinder extends BaseFinderPatternFinder {
             return false;
         }
         float moduleSize = totalModuleSize / 7.0f;
-        float maxVariance = moduleSize / 2.0f;
+        float maxVariance = (moduleSize / 2.0f) * (1.0f * sensitivityIncrease);
         // Allow less than 50% variance from 1-1-3-1-1 proportions
         return
                 Math.abs(moduleSize - stateCount[0]) < maxVariance &&
@@ -596,7 +591,8 @@ public class FinderPatternFinder extends BaseFinderPatternFinder {
         int startSize = possibleCenters.size();
         if (startSize < 3) {
             if (decodeState != null) {
-                decodeState.previousFailureHint.finderPatternNotEnough = true;
+                decodeState.previousFailureHint.finderPatternFinderHint.notEnough = true;
+                decodeState.previousFailureHint.finderPatternFinderHint.tooMany = false;
             }
             if (hasTwoCrediblePatterns(possibleCenters)) {
                 FinderPattern third = guessThirdPattern(possibleCenters.get(0), possibleCenters.get(1));
@@ -609,6 +605,9 @@ public class FinderPatternFinder extends BaseFinderPatternFinder {
             } else {
                 throw NotFoundException.getNotFoundInstance();
             }
+        } else if (startSize > MAX_CANDIDATES && decodeState != null) {
+            decodeState.previousFailureHint.finderPatternFinderHint.notEnough = false;
+            decodeState.previousFailureHint.finderPatternFinderHint.tooMany = true;
         }
 
         // Filter outlier possibilities whose module size is too different

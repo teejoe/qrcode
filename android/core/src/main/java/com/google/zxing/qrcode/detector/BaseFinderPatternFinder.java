@@ -1,6 +1,8 @@
 package com.google.zxing.qrcode.detector;
 
 import com.google.zxing.DecodeHintType;
+import com.google.zxing.DecodeState;
+import com.google.zxing.DecodeState.FinderPatternHint;
 import com.google.zxing.Logging;
 import com.google.zxing.NotFoundException;
 import com.google.zxing.common.BitMatrix;
@@ -13,12 +15,35 @@ import java.util.Map;
  */
 
 public abstract class BaseFinderPatternFinder {
+    public static final int MAX_CANDIDATES = 6;
+
     protected static final int CENTER_QUORUM = 2;
     protected final BitMatrix image;
+    protected DecodeState decodeState;
+    protected float sensitivityIncrease = 0.0f;
 
     public BaseFinderPatternFinder(BitMatrix image) {
         this.image = image;
+    }
 
+    protected void setFinderHint(FinderPatternHint hint) {
+        if (hint.notEnough) {
+            setSensitivityIncrease(hint.sensitivityIncrease + 0.1f);
+        }
+        if (hint.tooMany) {
+            setSensitivityIncrease(hint.sensitivityIncrease - 0.1f);
+        }
+        hint.sensitivityIncrease = sensitivityIncrease;
+        Logging.d("current sensitivity:" + sensitivityIncrease);
+    }
+
+    protected void setSensitivityIncrease(float factor) {
+        if (factor < 0.0f) {
+            factor = 0.0f;
+        } else if (factor > 0.99f) {
+            factor = 0.99f;
+        }
+        sensitivityIncrease = factor;
     }
 
     abstract FinderPatternInfo find(Map<DecodeHintType, ?> hints) throws NotFoundException;

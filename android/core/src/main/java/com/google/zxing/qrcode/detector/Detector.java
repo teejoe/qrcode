@@ -18,6 +18,7 @@ package com.google.zxing.qrcode.detector;
 
 import com.google.zxing.DecodeHintType;
 import com.google.zxing.DecodeState;
+import com.google.zxing.DecodeState.FinderPatternAlgorithm;
 import com.google.zxing.FormatException;
 import com.google.zxing.Logging;
 import com.google.zxing.NotFoundException;
@@ -92,23 +93,33 @@ public class Detector {
         if (decodeState != null) {
             int rand = (decodeState.currentRound & 0x03);   // (0,1,2,3)
             if (rand <= 1) {
-                if (decodeState.previousFailureHint.finderPatternNotEnough) {
+                if (decodeState.previousFailureHint.finderPatternFinderHint.notEnough) {
                     if ((System.currentTimeMillis() & 0x01) == 0) {
                         mFinderPatternFinder = new WeakFinderPatternFinder2(image, resultPointCallback);
+                        decodeState.previousFailureHint.finderPatternAlgorithm = FinderPatternAlgorithm.WEAK2;
+                        mFinderPatternFinder.setFinderHint(decodeState.previousFailureHint.weakFinderPatternFinder2Hint);
                         Logging.d("use weak finder 2");
                     } else {
                         mFinderPatternFinder = new WeakFinderPatternFinder(image, resultPointCallback);
+                        decodeState.previousFailureHint.finderPatternAlgorithm = FinderPatternAlgorithm.WEAK;
+                        mFinderPatternFinder.setFinderHint(decodeState.previousFailureHint.weakFinderPatternFinderHint);
                         Logging.d("use weak finder 1");
                     }
                 } else {
                     mFinderPatternFinder = new FinderPatternFinder(image, resultPointCallback);
+                    decodeState.previousFailureHint.finderPatternAlgorithm = FinderPatternAlgorithm.REGULAR;
+                    mFinderPatternFinder.setFinderHint(decodeState.previousFailureHint.finderPatternFinderHint);
                     Logging.d("use regular finder");
                 }
             } else if (rand == 2) {
                 mFinderPatternFinder = new WeakFinderPatternFinder(image, resultPointCallback);
+                decodeState.previousFailureHint.finderPatternAlgorithm = FinderPatternAlgorithm.WEAK;
+                mFinderPatternFinder.setFinderHint(decodeState.previousFailureHint.weakFinderPatternFinderHint);
                 Logging.d("use weak finder 1");
             } else if (rand == 3) {
                 mFinderPatternFinder = new WeakFinderPatternFinder2(image, resultPointCallback);
+                decodeState.previousFailureHint.finderPatternAlgorithm = FinderPatternAlgorithm.WEAK2;
+                mFinderPatternFinder.setFinderHint(decodeState.previousFailureHint.weakFinderPatternFinder2Hint);
                 Logging.d("use weak finder 2");
             }
         } else {
@@ -122,7 +133,7 @@ public class Detector {
 
         isFinderPatternCredible = isFinderPatternCredible(mFinderPatternInfo);
         if (!isFinderPatternCredible && decodeState != null) {
-            decodeState.previousFailureHint.finderPatternInCredible = true;
+            decodeState.previousFailureHint.finderPatternIncredible = true;
         }
 
         return processFinderPatternInfo(mFinderPatternInfo);
