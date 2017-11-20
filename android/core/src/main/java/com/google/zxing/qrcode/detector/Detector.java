@@ -96,31 +96,16 @@ public class Detector {
                 if (decodeState.previousFailureHint.finderPatternFinderHint.notEnough) {
                     if ((System.currentTimeMillis() & 0x01) == 0) {
                         mFinderPatternFinder = new WeakFinderPatternFinder2(image, resultPointCallback);
-                        decodeState.previousFailureHint.finderPatternAlgorithm = FinderPatternAlgorithm.WEAK2;
-                        mFinderPatternFinder.setFinderHint(decodeState.previousFailureHint.weakFinderPatternFinder2Hint);
-                        Logging.d("use weak finder 2");
                     } else {
                         mFinderPatternFinder = new WeakFinderPatternFinder(image, resultPointCallback);
-                        decodeState.previousFailureHint.finderPatternAlgorithm = FinderPatternAlgorithm.WEAK;
-                        mFinderPatternFinder.setFinderHint(decodeState.previousFailureHint.weakFinderPatternFinderHint);
-                        Logging.d("use weak finder 1");
                     }
                 } else {
                     mFinderPatternFinder = new FinderPatternFinder(image, resultPointCallback);
-                    decodeState.previousFailureHint.finderPatternAlgorithm = FinderPatternAlgorithm.REGULAR;
-                    mFinderPatternFinder.setFinderHint(decodeState.previousFailureHint.finderPatternFinderHint);
-                    Logging.d("use regular finder");
                 }
             } else if (rand == 2) {
                 mFinderPatternFinder = new WeakFinderPatternFinder(image, resultPointCallback);
-                decodeState.previousFailureHint.finderPatternAlgorithm = FinderPatternAlgorithm.WEAK;
-                mFinderPatternFinder.setFinderHint(decodeState.previousFailureHint.weakFinderPatternFinderHint);
-                Logging.d("use weak finder 1");
             } else if (rand == 3) {
                 mFinderPatternFinder = new WeakFinderPatternFinder2(image, resultPointCallback);
-                decodeState.previousFailureHint.finderPatternAlgorithm = FinderPatternAlgorithm.WEAK2;
-                mFinderPatternFinder.setFinderHint(decodeState.previousFailureHint.weakFinderPatternFinder2Hint);
-                Logging.d("use weak finder 2");
             }
         } else {
             mFinderPatternFinder = new FinderPatternFinder(image, resultPointCallback);
@@ -128,7 +113,9 @@ public class Detector {
         mFinderPatternInfo = mFinderPatternFinder.find(hints);
 
         if (resultPointCallback != null) {
-            resultPointCallback.foundBestFinderPattern(mFinderPatternInfo);
+            if (decodeState != null) {
+                resultPointCallback.foundBestFinderPattern(mFinderPatternInfo);
+            }
         }
 
         isFinderPatternCredible = isFinderPatternCredible(mFinderPatternInfo);

@@ -20,6 +20,7 @@ import com.google.zxing.BarcodeFormat;
 import com.google.zxing.BinaryBitmap;
 import com.google.zxing.ChecksumException;
 import com.google.zxing.DecodeHintType;
+import com.google.zxing.DecodeState;
 import com.google.zxing.FormatException;
 import com.google.zxing.Logging;
 import com.google.zxing.NotFoundException;
@@ -71,6 +72,7 @@ public class QRCodeReader implements Reader {
             throws NotFoundException, ChecksumException, FormatException {
         DecoderResult decoderResult = null;
         ResultPoint[] points;
+
         if (hints != null && hints.containsKey(DecodeHintType.PURE_BARCODE)) {
             BitMatrix bits = extractPureBits(image.getBlackMatrix());
             decoderResult = decoder.decode(bits, hints);
@@ -103,6 +105,17 @@ public class QRCodeReader implements Reader {
             }
 
             points = detectorResult.getPoints();
+            DecodeState decodeState = hints == null ? null : (DecodeState) hints.get(DecodeHintType.DECODE_STATE);
+            if (decodeState != null) {
+                ResultPoint[] transformedPoints = new ResultPoint[points.length];
+                for (int i = 0; i < points.length; i++) {
+                    transformedPoints[i] = new ResultPoint(points[i].getX() / decodeState.scaleFactor,
+                            points[i].getY() / decodeState.scaleFactor);
+                    Logging.d("x: " + transformedPoints[i].getX() + " y:" + transformedPoints[i].getY());
+                }
+                points = transformedPoints;
+                Logging.d(decodeState.toString());
+            }
         }
 
         // If the code was mirrored: swap the bottom-left and the top-right points.

@@ -111,6 +111,7 @@ final class DecodeHandler extends Handler {
                 LuminanceSource src = processedSource;
                 for (int i = 0; i < 3; i++) {
                     src = new DownscaledLuminanceSource(src);
+                    mDecodeState.scaleFactor = mDecodeState.scaleFactor * 0.5f;
                     bitmap = new BinaryBitmap(new RandomBinarizer(src));
 
                     try {
@@ -124,6 +125,7 @@ final class DecodeHandler extends Handler {
                 }
             } else {
                 bitmap = new BinaryBitmap(new RandomBinarizer(processedSource));
+                mDecodeState.scaleFactor = 1.0f;
                 try {
                     rawResult = multiFormatReader.decodeWithState(bitmap);
                 } catch (ReaderException re) {

@@ -45,10 +45,28 @@ public class DecodeState {
     }
 
     public int currentRound;
+    public float scaleFactor = 1.0f;
     public FailureHint previousFailureHint = new FailureHint();
 
     public void reset() {
         currentRound = 0;
+        scaleFactor = 1.0f;
         previousFailureHint.clear();
+    }
+
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("round:").append(currentRound)
+                .append("\nscaleFactor:").append(scaleFactor)
+                .append("\nfinder pattern finder:")
+                .append(previousFailureHint.finderPatternAlgorithm.name())
+                .append("\nfinder pattern sensitivity:")
+                .append(previousFailureHint.finderPatternFinderHint.sensitivityIncrease)
+                .append("(regular), ")
+                .append(previousFailureHint.weakFinderPatternFinderHint.sensitivityIncrease)
+                .append("(weak), ")
+                .append(previousFailureHint.weakFinderPatternFinder2Hint.sensitivityIncrease)
+                .append("(weak2)");
+        return builder.toString();
     }
 }
