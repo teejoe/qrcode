@@ -222,9 +222,10 @@ public final class CameraManager {
                 return null;
             }
 
-            //int width = findDesiredDimensionInRange(screenResolution.x, MIN_FRAME_WIDTH, MAX_FRAME_WIDTH);
+            int width = findDesiredDimensionInRange(screenResolution.x, MIN_FRAME_WIDTH, MAX_FRAME_WIDTH);
             int height = findDesiredDimensionInRange(screenResolution.y, MIN_FRAME_HEIGHT, MAX_FRAME_HEIGHT);
-            int width = height;
+            width = (height < width)? height: width;
+            height = width;
 
             int leftOffset = (screenResolution.x - width) / 2;
             int topOffset = (screenResolution.y - height) / 2;
@@ -264,6 +265,16 @@ public final class CameraManager {
                 // Called early, before init even finished
                 return null;
             }
+
+            // rotate for portrait mode.
+            if (configManager.getCWNeededRotation() == 90) {
+                rect.left = framingRect.top;
+                rect.top = screenResolution.x - framingRect.right;
+                rect.bottom = screenResolution.x - framingRect.left;
+                rect.right = framingRect.bottom;
+                screenResolution = new Point(screenResolution.y, screenResolution.x);
+            }
+
             rect.left = rect.left * cameraResolution.x / screenResolution.x;
             rect.right = rect.right * cameraResolution.x / screenResolution.x;
             rect.top = rect.top * cameraResolution.y / screenResolution.y;
