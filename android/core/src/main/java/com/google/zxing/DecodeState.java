@@ -37,8 +37,8 @@ public class DecodeState {
         public FinderPatternHint finderPatternFinderHint = new FinderPatternHint();
         public FinderPatternHint weakFinderPatternFinderHint = new FinderPatternHint();
         public FinderPatternHint weakFinderPatternFinder2Hint = new FinderPatternHint();
-        public FinderPatternAlgorithm finderPatternAlgorithm;
-        public BinarizerAlgorithm binarizerAlgorithm;
+        public FinderPatternAlgorithm finderPatternAlgorithm = FinderPatternAlgorithm.REGULAR;
+        public BinarizerAlgorithm binarizerAlgorithm = BinarizerAlgorithm.GLOBAL_HISTOGRAM;
 
         public void clear() {
             lowContrastImage = false;

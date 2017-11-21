@@ -126,9 +126,7 @@ public class Detector {
         mFinderPatternInfo = mFinderPatternFinder.find(hints);
 
         if (resultPointCallback != null) {
-            if (decodeState != null) {
-                resultPointCallback.foundBestFinderPattern(mFinderPatternInfo);
-            }
+            resultPointCallback.foundBestFinderPattern(mFinderPatternInfo);
         }
 
         isFinderPatternCredible = isFinderPatternCredible(mFinderPatternInfo);

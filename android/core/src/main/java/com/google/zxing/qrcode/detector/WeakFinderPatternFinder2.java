@@ -220,7 +220,7 @@ public class WeakFinderPatternFinder2 extends BaseFinderPatternFinder {
             return false;
         }
         float moduleSize = totalModuleSize / 7.0f;
-        float maxVariance = (moduleSize / 2.0f) * (1.0f * sensitivityIncrease);
+        float maxVariance = (moduleSize / 2.0f) * (1.0f + sensitivityIncrease);
         // Allow less than 50% variance from 1-(5)-1 proportions
         return
                 Math.abs(moduleSize - stateCount[0]) < maxVariance &&
