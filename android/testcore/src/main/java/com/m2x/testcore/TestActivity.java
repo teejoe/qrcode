@@ -20,6 +20,7 @@ import android.widget.Toast;
 import com.google.zxing.DecodeHintType;
 import com.google.zxing.DecodeState;
 import com.google.zxing.DecodeState.BinarizerAlgorithm;
+import com.google.zxing.Logging;
 import com.m2x.testcore.TestWrapper.DecodeResult;
 import com.squareup.picasso.Picasso;
 
@@ -102,10 +103,11 @@ public class TestActivity extends AppCompatActivity {
 
                         DecodeState state = new DecodeState();
                         hints.put(DecodeHintType.DECODE_STATE, state);
-                        DecodeResult result = TestWrapper.decodeBitmap(bitmap, mBinarizer, hints);
-                        if (!result.success) {
-                            result = TestWrapper.decodeBitmap(bitmap, ADJUSTED_HYBRID, hints);
-                        }
+                        //DecodeResult result = TestWrapper.decodeBitmap(bitmap, mBinarizer, hints);
+                        DecodeResult result = TestWrapper.decodeBitmap(bitmap, 200);
+                        //if (!result.success) {
+                        //    result = TestWrapper.decodeBitmap(bitmap, ADJUSTED_HYBRID, hints);
+                        //}
                         model.cost = System.currentTimeMillis() - start;
                         model.finished = true;
                         model.success = result.success;
@@ -131,7 +133,7 @@ public class TestActivity extends AppCompatActivity {
 
                     @Override
                     public void onError(Throwable e) {
-
+                        Logging.logStackTrace(e);
                     }
 
                     @Override

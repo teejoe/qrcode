@@ -23,6 +23,7 @@ import com.google.zxing.LuminanceSource;
 import com.google.zxing.NotFoundException;
 import com.google.zxing.ResultPoint;
 import com.google.zxing.ResultPointCallback;
+import com.google.zxing.common.AdjustedHybridBinarizer;
 import com.google.zxing.common.GlobalHistogramBinarizer;
 import com.google.zxing.common.HybridBinarizer;
 import com.google.zxing.qrcode.detector.AlignmentPattern;
@@ -40,6 +41,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
+import static com.google.zxing.DecodeState.BinarizerAlgorithm.ADJUSTED_HYBRID;
 import static com.google.zxing.DecodeState.BinarizerAlgorithm.GLOBAL_HISTOGRAM;
 import static com.google.zxing.DecodeState.BinarizerAlgorithm.HYBRID;
 
@@ -153,6 +155,29 @@ public class ImageDialog extends Dialog {
         }
 
         BinaryBitmap binaryBitmap = new BinaryBitmap(new HybridBinarizer(source));
+        try {
+            Bitmap bitmap = TestWrapper.binaryBitmap2Bitmap(binaryBitmap);
+            mImageView.setImageBitmap(bitmap);
+        } catch (NotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @OnClick(R.id.adjust_hybrid)
+    void onAdjustHybridClicked() {
+        mHybridBinarizerView.setChecked(false);
+        mAdjustedHybridBinarizerView.setChecked(true);
+        mGlobalHistogramBinarizerView.setChecked(false);
+
+        mBinarizer = ADJUSTED_HYBRID;
+        Bitmap origin = BitmapFactory.decodeFile(mImageFilePath);
+        LuminanceSource source = TestWrapper.buildLuminanceImageFromBitmap(origin);
+        if (source == null) {
+            return;
+        }
+
+        float scale = mSensitivityView.getProgress() / 100.0f;
+        BinaryBitmap binaryBitmap = new BinaryBitmap(new AdjustedHybridBinarizer(source, scale));
         try {
             Bitmap bitmap = TestWrapper.binaryBitmap2Bitmap(binaryBitmap);
             mImageView.setImageBitmap(bitmap);
