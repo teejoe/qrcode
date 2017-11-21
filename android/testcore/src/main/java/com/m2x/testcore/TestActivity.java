@@ -19,7 +19,7 @@ import android.widget.Toast;
 
 import com.google.zxing.DecodeHintType;
 import com.google.zxing.DecodeState;
-import com.m2x.testcore.TestWrapper.Binarizer;
+import com.google.zxing.DecodeState.BinarizerAlgorithm;
 import com.m2x.testcore.TestWrapper.DecodeResult;
 import com.squareup.picasso.Picasso;
 
@@ -38,6 +38,9 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 
+import static com.google.zxing.DecodeState.BinarizerAlgorithm.ADJUSTED_HYBRID;
+import static com.google.zxing.DecodeState.BinarizerAlgorithm.GLOBAL_HISTOGRAM;
+
 /**
  * Created by mtj on 2017/10/30.
  */
@@ -48,7 +51,7 @@ public class TestActivity extends AppCompatActivity {
 
     private ArrayList<ViewModel> mListItems = new ArrayList<>();
 
-    private Binarizer mBinarizer = Binarizer.GLOBAL_HISTOGRAM;
+    private BinarizerAlgorithm mBinarizer = GLOBAL_HISTOGRAM;
 
     @BindView(R.id.recyclerview)
     RecyclerView mRecyclerView;
@@ -76,10 +79,10 @@ public class TestActivity extends AppCompatActivity {
                 break;
             case R.id.change_binarizer:
                 int next = mBinarizer.ordinal() + 1;
-                if (next >= Binarizer.values().length) {
+                if (next >= BinarizerAlgorithm.values().length) {
                     next = 0;
                 }
-                mBinarizer = Binarizer.values()[next];
+                mBinarizer = BinarizerAlgorithm.values()[next];
                 Toast.makeText(this, "current binarizer:" + mBinarizer.toString(),
                         Toast.LENGTH_LONG).show();
                 break;
@@ -101,7 +104,7 @@ public class TestActivity extends AppCompatActivity {
                         hints.put(DecodeHintType.DECODE_STATE, state);
                         DecodeResult result = TestWrapper.decodeBitmap(bitmap, mBinarizer, hints);
                         if (!result.success) {
-                            result = TestWrapper.decodeBitmap(bitmap, Binarizer.ADJUSTED_HYBRID, hints);
+                            result = TestWrapper.decodeBitmap(bitmap, ADJUSTED_HYBRID, hints);
                         }
                         model.cost = System.currentTimeMillis() - start;
                         model.finished = true;

@@ -89,23 +89,36 @@ public class Detector {
         resultPointCallback = hints == null ? null :
                 (ResultPointCallback) hints.get(DecodeHintType.NEED_RESULT_POINT_CALLBACK);
         decodeState = hints == null ? null : (DecodeState) hints.get(DecodeHintType.DECODE_STATE);
-
         if (decodeState != null) {
-            int rand = (decodeState.currentRound & 0x03);   // (0,1,2,3)
-            if (rand <= 1) {
-                if (decodeState.previousFailureHint.finderPatternFinderHint.notEnough) {
-                    if ((System.currentTimeMillis() & 0x01) == 0) {
-                        mFinderPatternFinder = new WeakFinderPatternFinder2(image, resultPointCallback);
-                    } else {
+            if (decodeState.specifiedParams != null) {
+                switch (decodeState.specifiedParams.finderPatternAlgorithm) {
+                    case REGULAR:
+                        mFinderPatternFinder = new FinderPatternFinder(image, resultPointCallback);
+                        break;
+                    case WEAK:
                         mFinderPatternFinder = new WeakFinderPatternFinder(image, resultPointCallback);
-                    }
-                } else {
-                    mFinderPatternFinder = new FinderPatternFinder(image, resultPointCallback);
+                        break;
+                    case WEAK2:
+                        mFinderPatternFinder = new WeakFinderPatternFinder2(image, resultPointCallback);
+                        break;
                 }
-            } else if (rand == 2) {
-                mFinderPatternFinder = new WeakFinderPatternFinder(image, resultPointCallback);
-            } else if (rand == 3) {
-                mFinderPatternFinder = new WeakFinderPatternFinder2(image, resultPointCallback);
+            } else {
+                int rand = (decodeState.currentRound & 0x03);   // (0,1,2,3)
+                if (rand <= 1) {
+                    if (decodeState.previousFailureHint.finderPatternFinderHint.notEnough) {
+                        if ((System.currentTimeMillis() & 0x01) == 0) {
+                            mFinderPatternFinder = new WeakFinderPatternFinder2(image, resultPointCallback);
+                        } else {
+                            mFinderPatternFinder = new WeakFinderPatternFinder(image, resultPointCallback);
+                        }
+                    } else {
+                        mFinderPatternFinder = new FinderPatternFinder(image, resultPointCallback);
+                    }
+                } else if (rand == 2) {
+                    mFinderPatternFinder = new WeakFinderPatternFinder(image, resultPointCallback);
+                } else if (rand == 3) {
+                    mFinderPatternFinder = new WeakFinderPatternFinder2(image, resultPointCallback);
+                }
             }
         } else {
             mFinderPatternFinder = new FinderPatternFinder(image, resultPointCallback);
@@ -200,7 +213,6 @@ public class Detector {
         }
         Logging.d("module size:" + moduleSize);
         //////////////////////
-
 
         if (moduleSize < 1.0f) {
             throw NotFoundException.getNotFoundInstance();

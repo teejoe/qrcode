@@ -4,15 +4,21 @@ import android.app.Dialog;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.RadioButton;
+import android.widget.SeekBar;
 import android.widget.Toast;
 
 import com.google.zxing.BinaryBitmap;
 import com.google.zxing.DecodeHintType;
+import com.google.zxing.DecodeState;
+import com.google.zxing.DecodeState.BinarizerAlgorithm;
+import com.google.zxing.DecodeState.FinderPatternAlgorithm;
+import com.google.zxing.DecodeState.SpecifiedParams;
+import com.google.zxing.Logging;
 import com.google.zxing.LuminanceSource;
 import com.google.zxing.NotFoundException;
 import com.google.zxing.ResultPoint;
@@ -22,7 +28,6 @@ import com.google.zxing.common.HybridBinarizer;
 import com.google.zxing.qrcode.detector.AlignmentPattern;
 import com.google.zxing.qrcode.detector.FinderPattern;
 import com.google.zxing.qrcode.detector.FinderPatternInfo;
-import com.m2x.testcore.TestWrapper.Binarizer;
 import com.m2x.testcore.TestWrapper.DecodeResult;
 import com.m2x.testcore.widget.DecodeImageView;
 import com.squareup.picasso.Picasso;
@@ -35,6 +40,9 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
+import static com.google.zxing.DecodeState.BinarizerAlgorithm.GLOBAL_HISTOGRAM;
+import static com.google.zxing.DecodeState.BinarizerAlgorithm.HYBRID;
+
 /**
  * Created by mtj on 2017/10/30.
  */
@@ -43,13 +51,36 @@ public class ImageDialog extends Dialog {
 
     private String mImageFilePath;
 
-    private Binarizer mBinarizer = Binarizer.GLOBAL_HISTOGRAM;
+    private BinarizerAlgorithm mBinarizer = GLOBAL_HISTOGRAM;
 
     private Map<DecodeHintType, Object> mDecodeHint;
+    private DecodeState mDecodeState = new DecodeState();
     private ResultPointCallback mResultPointCallback;
+    private FinderPatternAlgorithm mFinderPatternAlgorithm = FinderPatternAlgorithm.REGULAR;
 
     @BindView(R.id.image)
     DecodeImageView mImageView;
+
+    @BindView(R.id.regular)
+    RadioButton mRegularFinderView;
+
+    @BindView(R.id.weak)
+    RadioButton mWeakFinderView;
+
+    @BindView(R.id.weak2)
+    RadioButton mWeak2FinderView;
+
+    @BindView(R.id.hybrid)
+    RadioButton mHybridBinarizerView;
+
+    @BindView(R.id.global_histogram)
+    RadioButton mGlobalHistogramBinarizerView;
+
+    @BindView(R.id.adjust_hybrid)
+    RadioButton mAdjustedHybridBinarizerView;
+
+    @BindView(R.id.sensitivity)
+    SeekBar mSensitivityView;
 
     public ImageDialog(@NonNull Context context, String filePath) {
         super(context);
@@ -110,7 +141,11 @@ public class ImageDialog extends Dialog {
 
     @OnClick(R.id.hybrid)
     void onHybridClicked() {
-        mBinarizer = Binarizer.HYBRID;
+        mHybridBinarizerView.setChecked(true);
+        mAdjustedHybridBinarizerView.setChecked(false);
+        mGlobalHistogramBinarizerView.setChecked(false);
+
+        mBinarizer = HYBRID;
         Bitmap origin = BitmapFactory.decodeFile(mImageFilePath);
         LuminanceSource source = TestWrapper.buildLuminanceImageFromBitmap(origin);
         if (source == null) {
@@ -126,9 +161,13 @@ public class ImageDialog extends Dialog {
         }
     }
 
-    @OnClick(R.id.global)
+    @OnClick(R.id.global_histogram)
     void onGlobalClicked() {
-        mBinarizer = Binarizer.GLOBAL_HISTOGRAM;
+        mGlobalHistogramBinarizerView.setChecked(true);
+        mAdjustedHybridBinarizerView.setChecked(false);
+        mHybridBinarizerView.setChecked(false);
+
+        mBinarizer = GLOBAL_HISTOGRAM;
         Bitmap origin = BitmapFactory.decodeFile(mImageFilePath);
         LuminanceSource source = TestWrapper.buildLuminanceImageFromBitmap(origin);
         if (source == null) {
@@ -144,10 +183,40 @@ public class ImageDialog extends Dialog {
         }
     }
 
+    @OnClick(R.id.regular)
+    void onRegularClicked() {
+        mFinderPatternAlgorithm = FinderPatternAlgorithm.REGULAR;
+        mRegularFinderView.setChecked(true);
+        mWeakFinderView.setChecked(false);
+        mWeak2FinderView.setChecked(false);
+    }
+
+    @OnClick(R.id.weak)
+    void onWeakClicked() {
+        mFinderPatternAlgorithm = FinderPatternAlgorithm.WEAK;
+        mRegularFinderView.setChecked(false);
+        mWeakFinderView.setChecked(true);
+        mWeak2FinderView.setChecked(false);
+    }
+
+    @OnClick(R.id.weak2)
+    void onWeak2Clicked() {
+        mFinderPatternAlgorithm = FinderPatternAlgorithm.WEAK2;
+        mRegularFinderView.setChecked(false);
+        mWeakFinderView.setChecked(false);
+        mWeak2FinderView.setChecked(true);
+    }
+
     @OnClick(R.id.decode)
     void onDecodeClicked() {
         mImageView.clearResultPoint();
 
+        mDecodeState.specifiedParams = new SpecifiedParams();
+        mDecodeState.specifiedParams.finderPatternAlgorithm = mFinderPatternAlgorithm;
+        mDecodeState.specifiedParams.finderPatternSensitivity = mSensitivityView.getProgress() / 100.0f;
+        Logging.d("progress:" + mSensitivityView.getProgress());
+        mDecodeState.previousFailureHint.binarizerAlgorithm = mBinarizer;
+        mDecodeHint.put(DecodeHintType.DECODE_STATE, mDecodeState);
         Bitmap bitmap = BitmapFactory.decodeFile(mImageFilePath);
         DecodeResult result = TestWrapper.decodeBitmap(bitmap, mBinarizer, mDecodeHint);
         Toast.makeText(getContext(), "success:" + result.success + "\nmsg:" + result.msg,

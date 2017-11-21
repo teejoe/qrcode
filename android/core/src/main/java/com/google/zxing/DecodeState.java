@@ -52,14 +52,21 @@ public class DecodeState {
         }
     }
 
+    public static class SpecifiedParams {
+        public FinderPatternAlgorithm finderPatternAlgorithm;
+        public float finderPatternSensitivity;
+    }
+
     public int currentRound;
     public float scaleFactor = 1.0f;
     public FailureHint previousFailureHint = new FailureHint();
+    public SpecifiedParams specifiedParams;
 
     public void reset() {
         currentRound = 0;
         scaleFactor = 1.0f;
         previousFailureHint.clear();
+        specifiedParams = null;
     }
 
     public String toString() {

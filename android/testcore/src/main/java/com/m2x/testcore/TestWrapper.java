@@ -1,6 +1,5 @@
 package com.m2x.testcore;
 
-import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
 import android.graphics.Color;
@@ -8,7 +7,7 @@ import android.graphics.Matrix;
 
 import com.google.zxing.BinaryBitmap;
 import com.google.zxing.DecodeHintType;
-import com.google.zxing.DecodeState;
+import com.google.zxing.DecodeState.BinarizerAlgorithm;
 import com.google.zxing.Logging;
 import com.google.zxing.LuminanceSource;
 import com.google.zxing.NotFoundException;
@@ -22,12 +21,15 @@ import com.google.zxing.qrcode.QRCodeReader;
 
 import java.util.Map;
 
+import static com.google.zxing.DecodeState.BinarizerAlgorithm.ADJUSTED_HYBRID;
+import static com.google.zxing.DecodeState.BinarizerAlgorithm.GLOBAL_HISTOGRAM;
+import static com.google.zxing.DecodeState.BinarizerAlgorithm.HYBRID;
+
 /**
  * Created by mtj on 2017/10/30.
  */
 
 public class TestWrapper {
-    public enum Binarizer {HYBRID, GLOBAL_HISTOGRAM, ADJUSTED_HYBRID};
 
     public static class DecodeResult {
         public DecodeResult(boolean success, String msg) {
@@ -50,7 +52,7 @@ public class TestWrapper {
     }
 
     public static DecodeResult decodeBitmap(Bitmap bitmap,
-                                            Binarizer binarizer,
+                                            BinarizerAlgorithm binarizer,
                                             Map<DecodeHintType, Object> hints) {
         try {
             //Bitmap bmp = getSizeLimitBitmap(bitmap, 200, 200);
@@ -63,11 +65,11 @@ public class TestWrapper {
             Result rawResult = null;
 
             BinaryBitmap binaryBitmap = null;
-            if (binarizer == Binarizer.HYBRID) {
+            if (binarizer == HYBRID) {
                 binaryBitmap = new BinaryBitmap(new HybridBinarizer(source));
-            } else if (binarizer == Binarizer.GLOBAL_HISTOGRAM) {
+            } else if (binarizer == GLOBAL_HISTOGRAM) {
                 binaryBitmap = new BinaryBitmap(new GlobalHistogramBinarizer(source));
-            } else if (binarizer == Binarizer.ADJUSTED_HYBRID) {
+            } else if (binarizer == ADJUSTED_HYBRID) {
                 ReaderException lastError = null;
                 for (float i = 1.0f; i < 1.2f; i += 0.01f) {
                     binaryBitmap = new BinaryBitmap(new AdjustedHybridBinarizer(source, i));

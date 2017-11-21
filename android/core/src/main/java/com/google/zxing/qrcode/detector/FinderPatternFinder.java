@@ -80,7 +80,12 @@ public class FinderPatternFinder extends BaseFinderPatternFinder {
 
         if (decodeState != null) {
             decodeState.previousFailureHint.finderPatternAlgorithm = FinderPatternAlgorithm.REGULAR;
-            setFinderHint(decodeState.previousFailureHint.finderPatternFinderHint);
+            if (decodeState.specifiedParams != null) {
+                sensitivityIncrease = decodeState.specifiedParams.finderPatternSensitivity;
+                decodeState.previousFailureHint.finderPatternFinderHint.sensitivityIncrease = sensitivityIncrease;
+            } else {
+                setFinderHint(decodeState.previousFailureHint.weakFinderPatternFinderHint);
+            }
         }
 
         int maxI = image.getHeight();

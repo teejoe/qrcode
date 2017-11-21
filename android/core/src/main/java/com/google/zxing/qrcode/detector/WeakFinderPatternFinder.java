@@ -81,7 +81,12 @@ public class WeakFinderPatternFinder extends BaseFinderPatternFinder {
         decodeState = hints == null ? null : (DecodeState) hints.get(DecodeHintType.DECODE_STATE);
         if (decodeState != null) {
             decodeState.previousFailureHint.finderPatternAlgorithm = FinderPatternAlgorithm.WEAK;
-            setFinderHint(decodeState.previousFailureHint.weakFinderPatternFinderHint);
+            if (decodeState.specifiedParams != null) {
+                sensitivityIncrease = decodeState.specifiedParams.finderPatternSensitivity;
+                decodeState.previousFailureHint.weakFinderPatternFinderHint.sensitivityIncrease = sensitivityIncrease;
+            } else {
+                setFinderHint(decodeState.previousFailureHint.weakFinderPatternFinderHint);
+            }
         }
 
         int maxI = image.getHeight();
