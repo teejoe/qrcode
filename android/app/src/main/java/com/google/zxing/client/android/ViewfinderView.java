@@ -41,7 +41,7 @@ import java.util.List;
 public final class ViewfinderView extends View {
 
     private static final int[] SCANNER_ALPHA = {0, 64, 128, 192, 255, 192, 128, 64};
-    private static final long ANIMATION_DELAY = 80L;
+    private static final long ANIMATION_DELAY = 16L;
     private static final int CURRENT_POINT_OPACITY = 0xA0;
     private static final int MAX_RESULT_POINTS = 20;
     private static final int POINT_SIZE = 6;
@@ -56,6 +56,11 @@ public final class ViewfinderView extends View {
     private int scannerAlpha;
     private List<ResultPoint> possibleResultPoints;
     private List<ResultPoint> lastPossibleResultPoints;
+
+    private boolean showResultPoints = false;
+    private long animateBeginTime;
+    private boolean animateLaserLine = false;
+    private int animatePeriod = 2500;   // milliseconds.
 
     // This constructor is used when the class is built from an XML resource.
     public ViewfinderView(Context context, AttributeSet attrs) {
@@ -106,49 +111,60 @@ public final class ViewfinderView extends View {
 
             // Draw a red "laser scanner" line through the middle to show decoding is active
             paint.setColor(laserColor);
-            paint.setAlpha(SCANNER_ALPHA[scannerAlpha]);
-            scannerAlpha = (scannerAlpha + 1) % SCANNER_ALPHA.length;
+            //paint.setAlpha(SCANNER_ALPHA[scannerAlpha]);
+            //scannerAlpha = (scannerAlpha + 1) % SCANNER_ALPHA.length;
             int middle = frame.height() / 2 + frame.top;
+            if (animateLaserLine) {
+                middle += getLaserVerticalPosOffset();
+            }
             canvas.drawRect(frame.left + 2, middle - 1, frame.right - 1, middle + 2, paint);
 
-            float scaleX = frame.width() / (float) previewFrame.width();
-            float scaleY = frame.height() / (float) previewFrame.height();
+            if (showResultPoints) {
+                // draw result points.
+                float scaleX = frame.width() / (float) previewFrame.width();
+                float scaleY = frame.height() / (float) previewFrame.height();
 
-            List<ResultPoint> currentPossible = possibleResultPoints;
-            List<ResultPoint> currentLast = lastPossibleResultPoints;
-            int frameLeft = frame.left;
-            int frameTop = frame.top;
-            if (currentPossible.isEmpty()) {
-                lastPossibleResultPoints = null;
-            } else {
-                possibleResultPoints = new ArrayList<>(5);
-                lastPossibleResultPoints = currentPossible;
-                paint.setAlpha(CURRENT_POINT_OPACITY);
-                paint.setColor(resultPointColor);
-                synchronized (currentPossible) {
-                    for (ResultPoint point : currentPossible) {
-                        canvas.drawCircle(frameLeft + (int) (point.getX() * scaleX),
-                                frameTop + (int) (point.getY() * scaleY),
-                                POINT_SIZE, paint);
+                List<ResultPoint> currentPossible = possibleResultPoints;
+                List<ResultPoint> currentLast = lastPossibleResultPoints;
+                int frameLeft = frame.left;
+                int frameTop = frame.top;
+                if (currentPossible.isEmpty()) {
+                    lastPossibleResultPoints = null;
+                } else {
+                    possibleResultPoints = new ArrayList<>(5);
+                    lastPossibleResultPoints = currentPossible;
+                    paint.setAlpha(CURRENT_POINT_OPACITY);
+                    paint.setColor(resultPointColor);
+                    synchronized (currentPossible) {
+                        for (ResultPoint point : currentPossible) {
+                            canvas.drawCircle(frameLeft + (int) (point.getX() * scaleX),
+                                    frameTop + (int) (point.getY() * scaleY),
+                                    POINT_SIZE, paint);
+                        }
                     }
                 }
-            }
-            if (currentLast != null) {
-                paint.setAlpha(CURRENT_POINT_OPACITY / 2);
-                paint.setColor(resultPointColor);
-                synchronized (currentLast) {
-                    float radius = POINT_SIZE / 2.0f;
-                    for (ResultPoint point : currentLast) {
-                        canvas.drawCircle(frameLeft + (int) (point.getX() * scaleX),
-                                frameTop + (int) (point.getY() * scaleY),
-                                radius, paint);
+                if (currentLast != null) {
+                    paint.setAlpha(CURRENT_POINT_OPACITY / 2);
+                    paint.setColor(resultPointColor);
+                    synchronized (currentLast) {
+                        float radius = POINT_SIZE / 2.0f;
+                        for (ResultPoint point : currentLast) {
+                            canvas.drawCircle(frameLeft + (int) (point.getX() * scaleX),
+                                    frameTop + (int) (point.getY() * scaleY),
+                                    radius, paint);
+                        }
                     }
                 }
             }
 
             // Request another update at the animation interval, but only repaint the laser line,
             // not the entire viewfinder mask.
-            postInvalidateDelayed(ANIMATION_DELAY,
+//            postInvalidateDelayed(ANIMATION_DELAY,
+//                    frame.left - POINT_SIZE,
+//                    frame.top - POINT_SIZE,
+//                    frame.right + POINT_SIZE,
+//                    frame.bottom + POINT_SIZE);
+            invalidate(
                     frame.left - POINT_SIZE,
                     frame.top - POINT_SIZE,
                     frame.right + POINT_SIZE,
@@ -173,6 +189,22 @@ public final class ViewfinderView extends View {
     public void drawResultBitmap(Bitmap barcode) {
         resultBitmap = barcode;
         invalidate();
+    }
+
+    public void beginAnimateLaser() {
+        animateBeginTime = System.currentTimeMillis();
+        animateLaserLine = true;
+    }
+
+    public float getLaserVerticalPosOffset() {
+        final float height = cameraManager.getFramingRect().height();
+
+        long t = (System.currentTimeMillis() - animateBeginTime) % (2 * animatePeriod);
+        if (t < animatePeriod) {
+            return (float) (-height / 2 * Math.cos(Math.PI * t / animatePeriod));
+        } else {
+            return (float) (height / 2 * Math.cos(Math.PI * t / animatePeriod));
+        }
     }
 
     public void addPossibleResultPoint(ResultPoint point) {

@@ -278,6 +278,8 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
             // Install the callback and wait for surfaceCreated() to init the camera.
             surfaceHolder.addCallback(this);
         }
+
+        viewfinderView.beginAnimateLaser();
     }
 
     private int getCurrentOrientation() {
@@ -870,6 +872,7 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
         statusView.setText(R.string.msg_default_status);
         statusView.setVisibility(View.VISIBLE);
         viewfinderView.setVisibility(View.VISIBLE);
+        viewfinderView.beginAnimateLaser();
         lastResult = null;
     }
 
