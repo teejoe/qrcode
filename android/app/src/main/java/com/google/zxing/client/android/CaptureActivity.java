@@ -48,6 +48,7 @@ import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -641,6 +642,13 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
             barcodeImageView.setImageBitmap(BitmapFactory.decodeResource(getResources(),
                     R.drawable.launcher_icon));
         } else {
+            if (cameraManager.getCWNeededRotation() != 0) {
+                // rotate bitmap;
+                Matrix matrix = new Matrix();
+                matrix.postRotate(cameraManager.getCWNeededRotation());
+                barcode = Bitmap.createBitmap(barcode, 0, 0,
+                        barcode.getWidth(), barcode.getHeight(), matrix, true);
+            }
             barcodeImageView.setImageBitmap(barcode);
         }
 
@@ -712,6 +720,13 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
     private void handleDecodeExternally(Result rawResult, ResultHandler resultHandler, Bitmap barcode) {
 
         if (barcode != null) {
+            if (cameraManager.getCWNeededRotation() != 0) {
+                // rotate bitmap;
+                Matrix matrix = new Matrix();
+                matrix.postRotate(cameraManager.getCWNeededRotation());
+                barcode = Bitmap.createBitmap(barcode, 0, 0,
+                        barcode.getWidth(), barcode.getHeight(), matrix, true);
+            }
             viewfinderView.drawResultBitmap(barcode);
         }
 

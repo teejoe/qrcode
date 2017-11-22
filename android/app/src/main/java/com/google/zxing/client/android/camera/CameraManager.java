@@ -284,6 +284,10 @@ public final class CameraManager {
         return framingRectInPreview;
     }
 
+    public int getCWNeededRotation() {
+        return configManager.getCWNeededRotation();
+    }
+
 
     /**
      * Allows third party apps to specify the camera ID, rather than determine
