@@ -16,26 +16,36 @@
 
 package com.google.zxing.qrcode;
 
+import android.graphics.Bitmap;
+
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.BinaryBitmap;
 import com.google.zxing.ChecksumException;
+import com.google.zxing.ContrastedLuminanceSource;
 import com.google.zxing.DecodeHintType;
 import com.google.zxing.DecodeState;
+import com.google.zxing.DownscaledLuminanceSource;
 import com.google.zxing.FormatException;
 import com.google.zxing.Logging;
+import com.google.zxing.LuminanceSource;
 import com.google.zxing.NotFoundException;
+import com.google.zxing.RGBLuminanceSource;
 import com.google.zxing.Reader;
 import com.google.zxing.ReaderException;
 import com.google.zxing.Result;
 import com.google.zxing.ResultMetadataType;
 import com.google.zxing.ResultPoint;
+import com.google.zxing.common.AdjustedHybridBinarizer;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.common.DecoderResult;
 import com.google.zxing.common.DetectorResult;
+import com.google.zxing.common.GlobalHistogramBinarizer;
+import com.google.zxing.common.HybridBinarizer;
 import com.google.zxing.qrcode.decoder.Decoder;
 import com.google.zxing.qrcode.decoder.QRCodeDecoderMetaData;
 import com.google.zxing.qrcode.detector.Detector;
 
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 
@@ -257,4 +267,87 @@ public class QRCodeReader implements Reader {
         return (x - leftTopBlack[0]) / 7.0f;
     }
 
+    public static Result decodeBitmap(Bitmap bitmap, int maxDecodeRound) {
+        if (maxDecodeRound <= 0) {
+            maxDecodeRound = 50;
+        }
+        if (maxDecodeRound > 1000) {
+            maxDecodeRound = 1000;
+        }
+
+        Map<DecodeHintType, Object> hints = new EnumMap<>(DecodeHintType.class);
+        DecodeState state = new DecodeState();
+        hints.put(DecodeHintType.DECODE_STATE, state);
+
+        for (int i = 0; i < maxDecodeRound; i++) {
+            try {
+                Result rawResult = decodeWithState(bitmap, hints);
+                if (rawResult != null) {
+                    return rawResult;
+                }
+            } catch (ReaderException e) {
+                // ignore.
+            }
+        }
+
+        return null;
+    }
+
+    private static Result decodeWithState(Bitmap bitmap, Map<DecodeHintType, Object> hints)
+            throws ReaderException {
+
+        DecodeState decodeState = hints == null ? null : (DecodeState) hints.get(DecodeHintType.DECODE_STATE);
+        decodeState.currentRound++;
+
+        LuminanceSource source = buildLuminanceImageFromBitmap(bitmap);
+        if (source == null) {
+            return null;
+        }
+
+        if ((System.currentTimeMillis() & 0x03) == 0) {
+            // randomly increase contrast.
+            source = new ContrastedLuminanceSource(source);
+        }
+
+        if ((System.currentTimeMillis() & 0x07) <= 2) {   // mod 8  (probability 3/8)
+            // randomly downscale
+            source = new DownscaledLuminanceSource(source);
+            decodeState.scaleFactor = 0.5f;
+            if ((System.currentTimeMillis() & 0x01) == 0) {     // mod 2
+                source = new DownscaledLuminanceSource(source);
+                decodeState.scaleFactor = 0.25f;
+                if ((System.currentTimeMillis() & 0x01) == 0) {     // mod 2
+                    source = new DownscaledLuminanceSource(source);
+                    decodeState.scaleFactor = 0.125f;
+                    if ((System.currentTimeMillis() & 0x01) == 0) {
+                        source = new DownscaledLuminanceSource(source);
+                        decodeState.scaleFactor = 0.0625f;
+                    }
+                }
+            }
+        } else {
+            decodeState.scaleFactor = 1.0f;
+        }
+
+        BinaryBitmap binaryBitmap = null;
+        if (decodeState.currentRound % 3 == 0) {
+            binaryBitmap = new BinaryBitmap(new HybridBinarizer(source));
+        } else if (decodeState.currentRound % 3 == 1) {
+            binaryBitmap = new BinaryBitmap(new GlobalHistogramBinarizer(source));
+        } else {
+            binaryBitmap = new BinaryBitmap(new AdjustedHybridBinarizer(source, 0.9f
+                    + decodeState.currentRound * 0.01f));
+        }
+        return new QRCodeReader().decode(binaryBitmap, hints);
+    }
+
+    private static LuminanceSource buildLuminanceImageFromBitmap(Bitmap bmp) {
+        if (bmp == null) return null;
+        int width = bmp.getWidth();
+        int height = bmp.getHeight();
+        int[] pixels = new int[width * height];
+
+        bmp.getPixels(pixels, 0, width, 0, 0, width, height);
+        return new RGBLuminanceSource(width, height, pixels);
+    }
 }
