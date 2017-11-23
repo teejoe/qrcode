@@ -35,7 +35,7 @@
         android:showAsAction="withText"/>
     <item
         android:id="@+id/menu_gallery"
-        android:title="gallery"
+        android:title="@string/menu_pick_from_gallery"
         android:orderInCategory="4"
         android:showAsAction="withText"/>
     <item

@@ -17,12 +17,8 @@
 package com.google.zxing.client.android;
 
 import com.google.zxing.BarcodeFormat;
-import com.google.zxing.BinaryBitmap;
 import com.google.zxing.DecodeHintType;
 import com.google.zxing.Logging;
-import com.google.zxing.LuminanceSource;
-import com.google.zxing.RGBLuminanceSource;
-import com.google.zxing.ReaderException;
 import com.google.zxing.Result;
 import com.google.zxing.ResultMetadataType;
 import com.google.zxing.ResultPoint;
@@ -36,7 +32,6 @@ import com.google.zxing.client.android.result.ResultHandler;
 import com.google.zxing.client.android.result.ResultHandlerFactory;
 import com.google.zxing.client.android.result.supplement.SupplementalInfoRetriever;
 import com.google.zxing.client.android.share.ShareActivity;
-import com.google.zxing.common.HybridBinarizer;
 import com.google.zxing.qrcode.QRCodeReader;
 
 import android.app.Activity;
@@ -428,56 +423,30 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
         }
     }
 
-    public static LuminanceSource buildLuminanceImageFromBitmap(Bitmap bmp) {
-        if (bmp == null) return null;
-        int width = bmp.getWidth();
-        int height = bmp.getHeight();
-        int[] pixels = new int[width * height];
-
-        bmp.getPixels(pixels, 0, width, 0, 0, width, height);
-        return new RGBLuminanceSource(width, height, pixels);
-    }
-
     private void decodeBitmap(final Bitmap bmp) {
         if (bmp == null) return;
 
-        new AsyncTask<Void, Void, String>() {
+        new AsyncTask<Void, Void, Result>() {
             @Override
             protected void onPreExecute() {
                 super.onPreExecute();
-                //mCodeScanner.pauseDecode();
             }
 
             @Override
-            protected String doInBackground(Void... voids) {
-                LuminanceSource source = buildLuminanceImageFromBitmap(bmp);
-                if (source == null) {
-                    return null;
-                }
-
-                BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
-
-                try {
-                    QRCodeReader re = new QRCodeReader();
-                    Result rawResult = re.decode(bitmap);
-                    if (rawResult != null) {
-                        return rawResult.getText();
-                    }
-                } catch (ReaderException e) {
-                    Log.d(TAG, "failed:" + e.getMessage());
-                }
-                return null;
+            protected Result doInBackground(Void... voids) {
+                return QRCodeReader.decodeBitmap(bmp, 200);
             }
 
             @Override
-            protected void onPostExecute(String result) {
+            protected void onPostExecute(Result result) {
                 super.onPostExecute(result);
-
                 if (result == null) {
-                    Toast.makeText(CaptureActivity.this, "未发现二维码", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(CaptureActivity.this,
+                            getString(R.string.msg_no_qr_code_was_found),
+                            Toast.LENGTH_SHORT).show();
                 } else {
-                    //handleQrCodeContent(result);
-                    Toast.makeText(CaptureActivity.this, result, Toast.LENGTH_LONG).show();
+                    handler.pause();
+                    handleDecode(result, null, 1.0f);
                 }
             }
         }.execute();

@@ -59,7 +59,9 @@
     <string name="menu_help">說明</string>
     <string name="menu_history">記錄</string>
     <string name="menu_settings">設定</string>
+    <string name="menu_pick_from_gallery">從相冊選取</string>
     <string name="menu_share">分享</string>
+    <string name="msg_no_qr_code_was_found">未檢出 QR code</string>
     <string name="msg_bulk_mode_scanned">大量掃描模式：條碼掃描並儲存</string>
     <string name="msg_camera_framework_bug">很抱歉，Android 相機出現問題，您可能需要重新啟動您的裝置。</string>
     <string name="msg_default_format">格式</string>

@@ -56,7 +56,8 @@ public final class CaptureActivityHandler extends Handler {
     private enum State {
         PREVIEW,
         SUCCESS,
-        DONE
+        DONE,
+        PAUSED,
     }
 
     CaptureActivityHandler(CaptureActivity activity,
@@ -101,9 +102,11 @@ public final class CaptureActivityHandler extends Handler {
                 activity.handleDecode((Result) message.obj, barcode, scaleFactor);
                 break;
             case R.id.decode_failed:
-                // We're decoding as fast as possible, so when one decode fails, start another.
-                state = State.PREVIEW;
-                cameraManager.requestPreviewFrame(decodeThread.getHandler(), R.id.decode);
+                if (state != State.PAUSED) {
+                    // We're decoding as fast as possible, so when one decode fails, start another.
+                    state = State.PREVIEW;
+                    cameraManager.requestPreviewFrame(decodeThread.getHandler(), R.id.decode);
+                }
                 break;
             case R.id.return_scan_result:
                 activity.setResult(Activity.RESULT_OK, (Intent) message.obj);
@@ -161,11 +164,16 @@ public final class CaptureActivityHandler extends Handler {
     }
 
     private void restartPreviewAndDecode() {
-        if (state == State.SUCCESS) {
+        if (state == State.SUCCESS || state == State.PAUSED) {
             state = State.PREVIEW;
             cameraManager.requestPreviewFrame(decodeThread.getHandler(), R.id.decode);
             activity.drawViewfinder();
         }
     }
 
+    public void pause() {
+        if (state == State.PREVIEW) {
+            state = State.PAUSED;
+        }
+    }
 }
