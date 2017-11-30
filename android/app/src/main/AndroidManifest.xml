@@ -54,7 +54,7 @@
         android:allowBackup="true">
         <activity
             android:name=".CaptureActivity"
-            android:screenOrientation="sensorPortrait"
+            android:screenOrientation="portrait"
             android:clearTaskOnLaunch="true"
             android:stateNotNeeded="true"
             android:theme="@style/CaptureTheme"
