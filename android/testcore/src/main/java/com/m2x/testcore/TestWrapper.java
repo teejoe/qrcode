@@ -199,6 +199,21 @@ public class TestWrapper {
         return bitmap;
     }
 
+    public static Bitmap luminanceSource2Bitmap(LuminanceSource source) {
+        int width = source.getWidth();
+        int height = source.getHeight();
+        Bitmap bitmap = Bitmap.createBitmap(width, height, Config.ARGB_8888);
+        byte[] matrix = source.getMatrix();
+        for (int i = 0; i < width; i++) {
+            for (int j = 0; j < height; j++) {
+                int value = ((matrix[j * width + i]) & 0xff);
+                int color = 0xff000000 + value + (value << 8) + (value << 16);
+                bitmap.setPixel(i, j, color);
+            }
+        }
+        return bitmap;
+    }
+
 
     public static Bitmap getSizeLimitBitmap(Bitmap bm, int maxWidth, int maxHeight) {
         int width = bm.getWidth();

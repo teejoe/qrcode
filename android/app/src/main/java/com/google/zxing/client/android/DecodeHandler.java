@@ -29,7 +29,6 @@ import com.google.zxing.MultiFormatReader;
 import com.google.zxing.PlanarYUVLuminanceSource;
 import com.google.zxing.ReaderException;
 import com.google.zxing.Result;
-import com.google.zxing.common.RandomBinarizer;
 import com.google.zxing.common.StatefulBinarizer;
 
 import android.os.Bundle;
@@ -89,6 +88,10 @@ final class DecodeHandler extends Handler {
     private void decode(byte[] data, int width, int height) {
         long start = System.currentTimeMillis();
         mDecodeState.currentRound++;
+        if (mDecodeState.currentRound == 1) {
+            mDecodeState.startTime = start;
+        }
+
         Logging.d("decode round:" + mDecodeState.currentRound);
         Result rawResult = null;
         PlanarYUVLuminanceSource source = activity.getCameraManager().buildLuminanceSource(data, width, height);
@@ -110,6 +113,7 @@ final class DecodeHandler extends Handler {
             if ((start & 0x03) == 0) {  // mod 4: randomly try downscale image.
                 Logging.d("randomly down scale image");
                 LuminanceSource src = processedSource;
+                mDecodeState.scaleFactor = 1.0f;
                 for (int i = 0; i < 3; i++) {
                     src = new DownscaledLuminanceSource(src);
                     mDecodeState.scaleFactor = mDecodeState.scaleFactor * 0.5f;
@@ -137,7 +141,9 @@ final class DecodeHandler extends Handler {
             }
         }
 
-        Logging.d("cost:" + (System.currentTimeMillis() - start) + "ms");
+        long now = System.currentTimeMillis();
+        Logging.d("cost:" + (now - start) + "ms");
+        Logging.d("ave cost:" + (now - mDecodeState.startTime) / mDecodeState.currentRound);
 
         Handler handler = activity.getHandler();
         if (rawResult != null) {

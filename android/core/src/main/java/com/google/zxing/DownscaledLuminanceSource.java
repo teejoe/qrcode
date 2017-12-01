@@ -1,5 +1,7 @@
 package com.google.zxing;
 
+import com.google.zxing.qrcode.DecodeConfigs;
+
 /**
  * Represent a downscaled luminance source with half width and half height of the original one.
  * Created by mtj on 2017/11/6.
@@ -34,6 +36,10 @@ public class DownscaledLuminanceSource extends LuminanceSource {
 
     @Override
     public byte[] getMatrix() {
+        if (DecodeConfigs.USE_NATIVE_METHODS) {
+            return NativeLib.downscaleByHalf(mSource.getMatrix(), mSource.getWidth(), mSource.getHeight());
+        }
+
         int width = getWidth();
         int height = getHeight();
         int sourceWidth = mSource.getWidth();

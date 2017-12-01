@@ -1,5 +1,7 @@
 package com.google.zxing;
 
+import com.google.zxing.qrcode.DecodeConfigs;
+
 /**
  * Represent a luminance source witch increases contrast of the original one.
  * Created by mtj on 2017/11/6.
@@ -12,7 +14,11 @@ public class ContrastedLuminanceSource extends LuminanceSource {
     public ContrastedLuminanceSource(LuminanceSource source) {
         super(source.getWidth(), source.getHeight());
         data = source.getMatrix();
-        increaseContrast();
+        if (DecodeConfigs.USE_NATIVE_METHODS) {
+            NativeLib.increaseContrast(data, getWidth(), getHeight());
+        } else {
+            increaseContrast();
+        }
     }
 
     private void increaseContrast() {

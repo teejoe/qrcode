@@ -59,6 +59,7 @@ public class DecodeState {
 
     public int currentRound;
     public float scaleFactor = 1.0f;
+    public long startTime;
     public FailureHint previousFailureHint = new FailureHint();
     public SpecifiedParams specifiedParams;
 
